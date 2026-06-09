@@ -1,0 +1,12 @@
+{
+  "customer": "Team 7",
+  "environment": "hackathon",
+  "region": "us-east",
+  "change_window": "weekend",
+  "security_requirements": [
+    "segment-management-plane",
+    "enable-audit-logging",
+    "restrict-admin-access"
+  ],
+  "notes": "H100 deployment test profile with execution enabled and auto approvals for demo speed."
+}

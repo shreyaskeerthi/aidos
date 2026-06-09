@@ -1,0 +1,8 @@
+deployment_name: team7-h100-ragops
+gpu_model: H100
+node_count: 6
+target_platform: Cisco AI Pod
+required_vlans:
+  - "2101"
+  - "2102"
+  - "2103"
