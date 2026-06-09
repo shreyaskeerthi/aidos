@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import os
+import re
 from typing import Any
 
 import httpx
@@ -90,6 +91,7 @@ class NetBoxClient:
         return diff
 
     def _upsert(self, endpoint: str, lookup_field: str, desired: dict[str, Any]) -> dict[str, Any]:
+        desired = self._prepare_desired(endpoint, desired)
         lookup_value = desired.get(lookup_field)
         existing = self._find_existing(endpoint, lookup_field, lookup_value)
 
@@ -124,6 +126,183 @@ class NetBoxClient:
             "lookup": {lookup_field: lookup_value},
             "diff": diff,
         }
+
+    @staticmethod
+    def _slugify(value: str) -> str:
+        normalized = re.sub(r"[^a-z0-9]+", "-", value.lower()).strip("-")
+        return normalized or "aidos"
+
+    def _find_id(self, endpoint: str, lookup_field: str, value: Any) -> int | None:
+        data = self._request("GET", endpoint, params={lookup_field: value, "limit": 1})
+        results = data.get("results", [])
+        if isinstance(results, list) and results:
+            first = results[0]
+            if isinstance(first, dict):
+                object_id = first.get("id")
+                if isinstance(object_id, int):
+                    return object_id
+        return None
+
+    def _ensure_region(self, region_name: str) -> int | None:
+        region_id = self._find_id("/api/dcim/regions/", "name", region_name)
+        if region_id is not None:
+            return region_id
+        created = self._request(
+            "POST",
+            "/api/dcim/regions/",
+            payload={"name": region_name, "slug": self._slugify(region_name)},
+        )
+        object_id = created.get("id")
+        return object_id if isinstance(object_id, int) else None
+
+    def _ensure_device_role(self, role_name: str) -> int | None:
+        role_id = self._find_id("/api/dcim/device-roles/", "name", role_name)
+        if role_id is not None:
+            return role_id
+        created = self._request(
+            "POST",
+            "/api/dcim/device-roles/",
+            payload={
+                "name": role_name,
+                "slug": self._slugify(role_name),
+                "color": "9e9e9e",
+            },
+        )
+        object_id = created.get("id")
+        return object_id if isinstance(object_id, int) else None
+
+    def _ensure_manufacturer(self, name: str = "AIDOS") -> int | None:
+        manufacturer_id = self._find_id("/api/dcim/manufacturers/", "name", name)
+        if manufacturer_id is not None:
+            return manufacturer_id
+        created = self._request(
+            "POST",
+            "/api/dcim/manufacturers/",
+            payload={"name": name, "slug": self._slugify(name)},
+        )
+        object_id = created.get("id")
+        return object_id if isinstance(object_id, int) else None
+
+    def _ensure_device_type(self, model: str) -> int | None:
+        manufacturer_id = self._ensure_manufacturer("AIDOS")
+        if manufacturer_id is None:
+            return None
+        device_type_id = self._find_id("/api/dcim/device-types/", "model", model)
+        if device_type_id is not None:
+            return device_type_id
+        created = self._request(
+            "POST",
+            "/api/dcim/device-types/",
+            payload={
+                "manufacturer": manufacturer_id,
+                "model": model,
+                "slug": self._slugify(model),
+                "u_height": 2,
+                "is_full_depth": True,
+            },
+        )
+        object_id = created.get("id")
+        return object_id if isinstance(object_id, int) else None
+
+    def _site_id_from_value(self, value: Any) -> int | None:
+        if isinstance(value, int):
+            return value
+        if isinstance(value, str):
+            return self._find_id("/api/dcim/sites/", "slug", value) or self._find_id(
+                "/api/dcim/sites/", "name", value
+            )
+        return None
+
+    def _rack_id_from_value(self, value: Any) -> int | None:
+        if isinstance(value, int):
+            return value
+        if isinstance(value, str):
+            return self._find_id("/api/dcim/racks/", "name", value)
+        return None
+
+    def _ensure_vrf(self, name: str) -> int | None:
+        vrf_id = self._find_id("/api/ipam/vrfs/", "name", name)
+        if vrf_id is not None:
+            return vrf_id
+        created = self._request(
+            "POST",
+            "/api/ipam/vrfs/",
+            payload={"name": name},
+        )
+        object_id = created.get("id")
+        return object_id if isinstance(object_id, int) else None
+
+    def _prepare_desired(self, endpoint: str, desired: dict[str, Any]) -> dict[str, Any]:
+        if self.dry_run:
+            return desired
+
+        prepared = dict(desired)
+
+        if endpoint == "/api/dcim/sites/":
+            region_name = prepared.get("region")
+            if isinstance(region_name, str) and region_name.strip():
+                region_id = self._ensure_region(region_name.strip())
+                if region_id is not None:
+                    prepared["region"] = region_id
+            else:
+                prepared.pop("region", None)
+            # Avoid failures on instances where tags are restricted/unknown.
+            prepared.pop("tags", None)
+
+        elif endpoint == "/api/dcim/racks/":
+            site_id = self._site_id_from_value(prepared.get("site"))
+            if site_id is not None:
+                prepared["site"] = site_id
+            prepared.pop("custom_fields", None)
+
+        elif endpoint == "/api/dcim/devices/":
+            site_id = self._site_id_from_value(prepared.get("site"))
+            if site_id is not None:
+                prepared["site"] = site_id
+
+            rack_id = self._rack_id_from_value(prepared.get("rack"))
+            if rack_id is not None:
+                prepared["rack"] = rack_id
+
+            role_value = prepared.get("role")
+            role_name = role_value if isinstance(role_value, str) else "gpu-compute"
+            role_id = self._ensure_device_role(role_name)
+            if role_id is not None:
+                prepared["role"] = role_id
+
+            if not prepared.get("device_type"):
+                custom_fields = prepared.get("custom_fields")
+                gpu_model = None
+                if isinstance(custom_fields, dict):
+                    model_val = custom_fields.get("gpu_model")
+                    if isinstance(model_val, str) and model_val.strip():
+                        gpu_model = model_val.strip().upper()
+                device_type_id = self._ensure_device_type(
+                    f"Generic GPU Node {gpu_model or 'H100'}"
+                )
+                if device_type_id is not None:
+                    prepared["device_type"] = device_type_id
+
+            prepared.pop("custom_fields", None)
+
+        elif endpoint == "/api/ipam/vlans/":
+            site_id = self._site_id_from_value(prepared.get("site"))
+            if site_id is not None:
+                prepared["site"] = site_id
+
+        elif endpoint == "/api/ipam/prefixes/":
+            status = prepared.get("status")
+            if isinstance(status, str) and status == "planned":
+                prepared["status"] = "active"
+            vrf_value = prepared.get("vrf")
+            if isinstance(vrf_value, str) and vrf_value.strip():
+                vrf_id = self._ensure_vrf(vrf_value.strip())
+                if vrf_id is not None:
+                    prepared["vrf"] = vrf_id
+                else:
+                    prepared.pop("vrf", None)
+
+        return prepared
 
     def upsert_payload(self, payload: NetBoxPayload) -> dict[str, Any]:
         """Upsert mapped NetBox payload with deterministic reconciliation summary."""
