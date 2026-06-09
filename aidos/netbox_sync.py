@@ -361,6 +361,25 @@ def build_netbox_payload(sot: CanonicalSoT) -> NetBoxPayload:
     site_slug = (sot.project.site_name or sot.project.project_name).lower().replace(" ", "-")
     deployment = sot.intent.deployment_name
     rack_name = f"{deployment}-rack-a"
+    rack_height_u = 42
+    device_u_height = 2
+
+    devices: list[dict[str, Any]] = []
+    for idx in range(sot.intent.node_count):
+        # Fill the rack from the bottom up in 2U increments for a visible elevation layout.
+        position = rack_height_u - (idx * device_u_height)
+        devices.append(
+            {
+                "name": f"{deployment}-node-{idx+1}",
+                "site": site_slug,
+                "rack": rack_name,
+                "status": "active",
+                "role": "gpu-compute",
+                "position": position,
+                "face": "front",
+                "custom_fields": {"gpu_model": sot.intent.gpu_model},
+            }
+        )
 
     return NetBoxPayload(
         sites=[
@@ -375,21 +394,11 @@ def build_netbox_payload(sot: CanonicalSoT) -> NetBoxPayload:
             {
                 "name": rack_name,
                 "site": site_slug,
-                "status": "planned",
+                "status": "active",
                 "custom_fields": {"required_slots": sot.expected.required_rack_slots},
             }
         ],
-        devices=[
-            {
-                "name": f"{deployment}-node-{idx+1}",
-                "site": site_slug,
-                "rack": rack_name,
-                "status": "planned",
-                "role": "gpu-compute",
-                "custom_fields": {"gpu_model": sot.intent.gpu_model},
-            }
-            for idx in range(sot.intent.node_count)
-        ],
+        devices=devices,
         vlans=[
             {
                 "name": f"{deployment}-vlan-{vlan}",
