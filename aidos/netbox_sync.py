@@ -46,7 +46,13 @@ class NetBoxClient:
         url = f"{self.base_url}{path}"
         with httpx.Client(timeout=self.timeout, verify=self.verify, headers=self._headers()) as client:
             response = client.request(method, url, params=params, json=payload)
-            response.raise_for_status()
+            try:
+                response.raise_for_status()
+            except httpx.HTTPStatusError as exc:
+                body = response.text.strip()
+                raise ValueError(
+                    f"NetBox API error {response.status_code} for {method} {path}: {body}"
+                ) from exc
             if not response.text:
                 return {}
             data = response.json()
@@ -134,26 +140,39 @@ class NetBoxClient:
             },
         }
 
+        had_errors = False
+
+        def _safe_upsert(
+            collection: str,
+            endpoint: str,
+            lookup_field: str,
+            desired: dict[str, Any],
+        ) -> None:
+            nonlocal had_errors
+            try:
+                entry = self._upsert(endpoint, lookup_field, desired)
+            except Exception as exc:  # noqa: BLE001
+                had_errors = True
+                entry = {
+                    "action": "error",
+                    "lookup": {lookup_field: desired.get(lookup_field)},
+                    "error": str(exc),
+                }
+            result["reconciliation"][collection].append(entry)
+
         for site in payload.sites:
-            result["reconciliation"]["sites"].append(
-                self._upsert("/api/dcim/sites/", "slug", site)
-            )
+            _safe_upsert("sites", "/api/dcim/sites/", "slug", site)
         for rack in payload.racks:
-            result["reconciliation"]["racks"].append(
-                self._upsert("/api/dcim/racks/", "name", rack)
-            )
+            _safe_upsert("racks", "/api/dcim/racks/", "name", rack)
         for device in payload.devices:
-            result["reconciliation"]["devices"].append(
-                self._upsert("/api/dcim/devices/", "name", device)
-            )
+            _safe_upsert("devices", "/api/dcim/devices/", "name", device)
         for vlan in payload.vlans:
-            result["reconciliation"]["vlans"].append(
-                self._upsert("/api/ipam/vlans/", "name", vlan)
-            )
+            _safe_upsert("vlans", "/api/ipam/vlans/", "name", vlan)
         for prefix in payload.prefixes:
-            result["reconciliation"]["prefixes"].append(
-                self._upsert("/api/ipam/prefixes/", "prefix", prefix)
-            )
+            _safe_upsert("prefixes", "/api/ipam/prefixes/", "prefix", prefix)
+
+        if had_errors:
+            result["status"] = "applied_with_errors" if not self.dry_run else "dry_run_with_errors"
 
         return result
 
