@@ -1,0 +1,172 @@
+{
+  "project": {
+    "customer_name": "unknown-customer",
+    "project_name": "aidos-project",
+    "region": null,
+    "site_name": null
+  },
+  "intent": {
+    "deployment_name": "inference-deployment",
+    "gpu_model": "H100",
+    "node_count": 4,
+    "target_platform": "Cisco AI Pod",
+    "required_vlans": [
+      "101",
+      "102"
+    ]
+  },
+  "site": {
+    "loading_dock": true,
+    "server_lift": false,
+    "rack_floor_psf": 150.0,
+    "liquid_cooling": false,
+    "power_profile": "208V 30A 3-phase",
+    "available_circuits": true,
+    "uplinks": "2x10G",
+    "ports_40g": true,
+    "vlan_config_needed": true,
+    "vlan_ids": [
+      "1201",
+      "1202"
+    ],
+    "network_diagram_provided": false,
+    "layout_blueprint_provided": false,
+    "available_rack_slots": null,
+    "available_power_kw": null,
+    "available_cooling_kw": null
+  },
+  "expected": {
+    "site": {
+      "loading_dock": true,
+      "server_lift": false,
+      "rack_floor_psf": 150.0,
+      "liquid_cooling": false,
+      "power_profile": "208V 30A 3-phase",
+      "available_circuits": true,
+      "uplinks": "2x10G",
+      "ports_40g": true,
+      "vlan_config_needed": true,
+      "vlan_ids": [
+        "1201",
+        "1202"
+      ],
+      "network_diagram_provided": false,
+      "layout_blueprint_provided": false,
+      "available_rack_slots": null,
+      "available_power_kw": null,
+      "available_cooling_kw": null
+    },
+    "intent": {
+      "deployment_name": "inference-deployment",
+      "gpu_model": "H100",
+      "node_count": 4,
+      "target_platform": "Cisco AI Pod",
+      "required_vlans": [
+        "101",
+        "102"
+      ]
+    },
+    "required_rack_slots": 1,
+    "estimated_power_kw": 40.0,
+    "estimated_cooling_kw": 36.0,
+    "high_density_gpu": true
+  },
+  "workload": {
+    "workload_name": "inference",
+    "latency_target_ms": null,
+    "throughput_target_tps": null,
+    "gpu_model_preference": "H100",
+    "desired_node_count": 4,
+    "storage_tib": null,
+    "network_profile": null,
+    "deployment_name": "aidos-mvp",
+    "gpu_model": "H100",
+    "node_count": 8,
+    "target_platform": "Cisco AI Pod",
+    "required_vlans": [
+      "101",
+      "102"
+    ]
+  },
+  "provenance": [
+    {
+      "source": "intake.survey",
+      "raw_value": {
+        "loading_dock": true,
+        "server_lift": false,
+        "rack_floor_psf": 150.0,
+        "liquid_cooling": false,
+        "power_profile": "208V 30A 3-phase",
+        "available_circuits": true,
+        "uplinks": "2x10G",
+        "ports_40g": true,
+        "vlan_config_needed": true,
+        "vlan_ids": [
+          "1201",
+          "1202"
+        ],
+        "network_diagram_provided": false,
+        "layout_blueprint_provided": false
+      },
+      "timestamp": "2026-06-05T13:26:48.131052Z",
+      "context": {},
+      "source_type": "file",
+      "source_system": "intake",
+      "parser_or_adapter": "read_key_value_file",
+      "confidence": null,
+      "completeness": null
+    },
+    {
+      "source": "intake.bom",
+      "raw_value": {
+        "deployment_name": "inference-deployment",
+        "gpu_model": "H100",
+        "node_count": 4,
+        "target_platform": "Cisco AI Pod",
+        "required_vlans": [
+          "101",
+          "102"
+        ]
+      },
+      "timestamp": "2026-06-05T13:26:48.131052Z",
+      "context": {},
+      "source_type": "file",
+      "source_system": "intake",
+      "parser_or_adapter": "generated_bom",
+      "confidence": null,
+      "completeness": null
+    },
+    {
+      "source": "intake.project",
+      "raw_value": {},
+      "timestamp": "2026-06-05T13:26:48.131052Z",
+      "context": {},
+      "source_type": "file",
+      "source_system": "intake",
+      "parser_or_adapter": "read_key_value_file",
+      "confidence": null,
+      "completeness": null
+    },
+    {
+      "source": "intake.workload",
+      "raw_value": {
+        "deployment_name": "aidos-mvp",
+        "gpu_model": "H100",
+        "node_count": 8,
+        "target_platform": "Cisco AI Pod",
+        "required_vlans": [
+          "101",
+          "102"
+        ]
+      },
+      "timestamp": "2026-06-05T13:26:48.131052Z",
+      "context": {},
+      "source_type": "file",
+      "source_system": "intake",
+      "parser_or_adapter": "read_key_value_file",
+      "confidence": null,
+      "completeness": null
+    }
+  ],
+  "generated_at": "2026-06-05T13:26:48.131052Z"
+}

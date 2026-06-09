@@ -1,0 +1,265 @@
+{
+  "deployment": "aidos-mvp",
+  "evidence": [
+    {
+      "source": "intake.survey",
+      "raw_value": {
+        "loading_dock": true,
+        "server_lift": false,
+        "rack_floor_psf": 150.0,
+        "liquid_cooling": false,
+        "power_profile": "208V 30A 3-phase",
+        "available_circuits": true,
+        "uplinks": "2x10G",
+        "ports_40g": true,
+        "vlan_config_needed": true,
+        "vlan_ids": [
+          "1201",
+          "1202"
+        ],
+        "network_diagram_provided": false,
+        "layout_blueprint_provided": false
+      },
+      "timestamp": "2026-06-05T14:27:01.194369Z",
+      "context": {},
+      "source_type": "file",
+      "source_system": "intake",
+      "parser_or_adapter": "read_key_value_file",
+      "confidence": null,
+      "completeness": null
+    },
+    {
+      "source": "intake.bom",
+      "raw_value": {
+        "deployment_name": "aidos-mvp",
+        "gpu_model": "H100",
+        "node_count": 8,
+        "target_platform": "Cisco AI Pod",
+        "required_vlans": [
+          "101",
+          "102"
+        ]
+      },
+      "timestamp": "2026-06-05T14:27:01.194369Z",
+      "context": {},
+      "source_type": "file",
+      "source_system": "intake",
+      "parser_or_adapter": "provided_bom",
+      "confidence": null,
+      "completeness": null
+    },
+    {
+      "source": "intake.project",
+      "raw_value": {},
+      "timestamp": "2026-06-05T14:27:01.194369Z",
+      "context": {},
+      "source_type": "file",
+      "source_system": "intake",
+      "parser_or_adapter": "read_key_value_file",
+      "confidence": null,
+      "completeness": null
+    },
+    {
+      "source": "intake.workload",
+      "raw_value": {
+        "workload_name": "rag-serving",
+        "latency_target_ms": 150,
+        "throughput_target_tps": 120,
+        "gpu_model_preference": "H100",
+        "desired_node_count": 6,
+        "storage_tib": 120,
+        "network_profile": "east-west-heavy"
+      },
+      "timestamp": "2026-06-05T14:27:01.194369Z",
+      "context": {},
+      "source_type": "file",
+      "source_system": "intake",
+      "parser_or_adapter": "read_key_value_file",
+      "confidence": null,
+      "completeness": null
+    },
+    {
+      "source": "survey.server_lift",
+      "raw_value": false,
+      "timestamp": "2026-06-05T14:27:01.194369Z",
+      "context": {
+        "dense_install": true
+      },
+      "source_type": "derived",
+      "source_system": "aidos",
+      "parser_or_adapter": "unknown",
+      "confidence": null,
+      "completeness": null
+    },
+    {
+      "source": "survey.available_rack_slots",
+      "raw_value": null,
+      "timestamp": "2026-06-05T14:27:01.194369Z",
+      "context": {
+        "required_rack_slots": 2
+      },
+      "source_type": "derived",
+      "source_system": "aidos",
+      "parser_or_adapter": "unknown",
+      "confidence": null,
+      "completeness": null
+    },
+    {
+      "source": "survey.available_power_kw",
+      "raw_value": null,
+      "timestamp": "2026-06-05T14:27:01.194369Z",
+      "context": {
+        "estimated_power_kw": 80.0
+      },
+      "source_type": "derived",
+      "source_system": "aidos",
+      "parser_or_adapter": "unknown",
+      "confidence": null,
+      "completeness": null
+    },
+    {
+      "source": "survey.liquid_cooling",
+      "raw_value": false,
+      "timestamp": "2026-06-05T14:27:01.194369Z",
+      "context": {
+        "gpu_model": "H100"
+      },
+      "source_type": "derived",
+      "source_system": "aidos",
+      "parser_or_adapter": "unknown",
+      "confidence": null,
+      "completeness": null
+    },
+    {
+      "source": "survey.network_diagram_provided",
+      "raw_value": false,
+      "timestamp": "2026-06-05T14:27:01.194369Z",
+      "context": {},
+      "source_type": "derived",
+      "source_system": "aidos",
+      "parser_or_adapter": "unknown",
+      "confidence": null,
+      "completeness": null
+    },
+    {
+      "source": "survey.layout_blueprint_provided",
+      "raw_value": false,
+      "timestamp": "2026-06-05T14:27:01.194369Z",
+      "context": {},
+      "source_type": "derived",
+      "source_system": "aidos",
+      "parser_or_adapter": "unknown",
+      "confidence": null,
+      "completeness": null
+    },
+    {
+      "source": "survey.available_cooling_kw",
+      "raw_value": null,
+      "timestamp": "2026-06-05T14:27:01.194369Z",
+      "context": {
+        "estimated_cooling_kw": 72.0
+      },
+      "source_type": "derived",
+      "source_system": "aidos",
+      "parser_or_adapter": "unknown",
+      "confidence": null,
+      "completeness": null
+    },
+    {
+      "source": "intent.node_count",
+      "raw_value": 8,
+      "timestamp": "2026-06-05T14:27:01.194369Z",
+      "context": {},
+      "source_type": "derived",
+      "source_system": "aidos",
+      "parser_or_adapter": "unknown",
+      "confidence": null,
+      "completeness": null
+    },
+    {
+      "source": "survey.loading_dock",
+      "raw_value": true,
+      "timestamp": "2026-06-05T14:27:01.194369Z",
+      "context": {},
+      "source_type": "derived",
+      "source_system": "aidos",
+      "parser_or_adapter": "unknown",
+      "confidence": null,
+      "completeness": null
+    },
+    {
+      "source": "survey.rack_floor_psf",
+      "raw_value": 150.0,
+      "timestamp": "2026-06-05T14:27:01.194369Z",
+      "context": {},
+      "source_type": "derived",
+      "source_system": "aidos",
+      "parser_or_adapter": "unknown",
+      "confidence": null,
+      "completeness": null
+    },
+    {
+      "source": "survey.available_circuits",
+      "raw_value": true,
+      "timestamp": "2026-06-05T14:27:01.194369Z",
+      "context": {},
+      "source_type": "derived",
+      "source_system": "aidos",
+      "parser_or_adapter": "unknown",
+      "confidence": null,
+      "completeness": null
+    },
+    {
+      "source": "survey.power_profile",
+      "raw_value": "208V 30A 3-phase",
+      "timestamp": "2026-06-05T14:27:01.194369Z",
+      "context": {},
+      "source_type": "derived",
+      "source_system": "aidos",
+      "parser_or_adapter": "unknown",
+      "confidence": null,
+      "completeness": null
+    },
+    {
+      "source": "survey.vlan_ids",
+      "raw_value": [
+        "1201",
+        "1202"
+      ],
+      "timestamp": "2026-06-05T14:27:01.194369Z",
+      "context": {
+        "vlan_config_needed": true
+      },
+      "source_type": "derived",
+      "source_system": "aidos",
+      "parser_or_adapter": "unknown",
+      "confidence": null,
+      "completeness": null
+    },
+    {
+      "source": "survey.uplinks",
+      "raw_value": "2x10G",
+      "timestamp": "2026-06-05T14:27:01.194369Z",
+      "context": {},
+      "source_type": "derived",
+      "source_system": "aidos",
+      "parser_or_adapter": "unknown",
+      "confidence": null,
+      "completeness": null
+    },
+    {
+      "source": "survey.ports_40g",
+      "raw_value": true,
+      "timestamp": "2026-06-05T14:27:01.194369Z",
+      "context": {
+        "node_count": 8
+      },
+      "source_type": "derived",
+      "source_system": "aidos",
+      "parser_or_adapter": "unknown",
+      "confidence": null,
+      "completeness": null
+    }
+  ],
+  "generated_at": "2026-06-05T14:27:01.196399Z"
+}

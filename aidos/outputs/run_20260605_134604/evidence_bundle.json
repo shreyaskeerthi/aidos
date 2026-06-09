@@ -1,0 +1,347 @@
+{
+  "deployment": "rag-serving-deployment",
+  "evidence": [
+    {
+      "source": "intake.survey",
+      "raw_value": {
+        "loading_dock": true,
+        "server_lift": false,
+        "rack_floor_psf": 150.0,
+        "liquid_cooling": false,
+        "power_profile": "208V 30A 3-phase",
+        "available_circuits": true,
+        "uplinks": "2x10G",
+        "ports_40g": true,
+        "vlan_config_needed": true,
+        "vlan_ids": [
+          "1201",
+          "1202"
+        ],
+        "network_diagram_provided": false,
+        "layout_blueprint_provided": false
+      },
+      "timestamp": "2026-06-05T13:46:04.243853Z",
+      "context": {},
+      "source_type": "file",
+      "source_system": "intake",
+      "parser_or_adapter": "read_key_value_file",
+      "confidence": null,
+      "completeness": null
+    },
+    {
+      "source": "intake.bom",
+      "raw_value": {
+        "deployment_name": "rag-serving-deployment",
+        "gpu_model": "H100",
+        "node_count": 6,
+        "target_platform": "Cisco AI Pod",
+        "required_vlans": [
+          "101",
+          "102"
+        ]
+      },
+      "timestamp": "2026-06-05T13:46:04.243853Z",
+      "context": {},
+      "source_type": "file",
+      "source_system": "intake",
+      "parser_or_adapter": "generated_bom",
+      "confidence": null,
+      "completeness": null
+    },
+    {
+      "source": "intake.project",
+      "raw_value": {},
+      "timestamp": "2026-06-05T13:46:04.243853Z",
+      "context": {},
+      "source_type": "file",
+      "source_system": "intake",
+      "parser_or_adapter": "read_key_value_file",
+      "confidence": null,
+      "completeness": null
+    },
+    {
+      "source": "intake.workload",
+      "raw_value": {
+        "workload_name": "rag-serving",
+        "latency_target_ms": 150,
+        "throughput_target_tps": 120,
+        "gpu_model_preference": "H100",
+        "desired_node_count": 6,
+        "storage_tib": 120,
+        "network_profile": "east-west-heavy"
+      },
+      "timestamp": "2026-06-05T13:46:04.243853Z",
+      "context": {},
+      "source_type": "file",
+      "source_system": "intake",
+      "parser_or_adapter": "read_key_value_file",
+      "confidence": null,
+      "completeness": null
+    },
+    {
+      "source": "survey.server_lift",
+      "raw_value": false,
+      "timestamp": "2026-06-05T13:46:04.243853Z",
+      "context": {
+        "dense_install": true
+      },
+      "source_type": "derived",
+      "source_system": "aidos",
+      "parser_or_adapter": "unknown",
+      "confidence": null,
+      "completeness": null
+    },
+    {
+      "source": "survey.available_rack_slots",
+      "raw_value": null,
+      "timestamp": "2026-06-05T13:46:04.243853Z",
+      "context": {
+        "required_rack_slots": 2
+      },
+      "source_type": "derived",
+      "source_system": "aidos",
+      "parser_or_adapter": "unknown",
+      "confidence": null,
+      "completeness": null
+    },
+    {
+      "source": "survey.available_power_kw",
+      "raw_value": null,
+      "timestamp": "2026-06-05T13:46:04.243853Z",
+      "context": {
+        "estimated_power_kw": 60.0
+      },
+      "source_type": "derived",
+      "source_system": "aidos",
+      "parser_or_adapter": "unknown",
+      "confidence": null,
+      "completeness": null
+    },
+    {
+      "source": "survey.liquid_cooling",
+      "raw_value": false,
+      "timestamp": "2026-06-05T13:46:04.243853Z",
+      "context": {
+        "gpu_model": "H100"
+      },
+      "source_type": "derived",
+      "source_system": "aidos",
+      "parser_or_adapter": "unknown",
+      "confidence": null,
+      "completeness": null
+    },
+    {
+      "source": "survey.network_diagram_provided",
+      "raw_value": false,
+      "timestamp": "2026-06-05T13:46:04.243853Z",
+      "context": {},
+      "source_type": "derived",
+      "source_system": "aidos",
+      "parser_or_adapter": "unknown",
+      "confidence": null,
+      "completeness": null
+    },
+    {
+      "source": "survey.layout_blueprint_provided",
+      "raw_value": false,
+      "timestamp": "2026-06-05T13:46:04.243853Z",
+      "context": {},
+      "source_type": "derived",
+      "source_system": "aidos",
+      "parser_or_adapter": "unknown",
+      "confidence": null,
+      "completeness": null
+    },
+    {
+      "source": "survey.available_cooling_kw",
+      "raw_value": null,
+      "timestamp": "2026-06-05T13:46:04.243853Z",
+      "context": {
+        "estimated_cooling_kw": 54.0
+      },
+      "source_type": "derived",
+      "source_system": "aidos",
+      "parser_or_adapter": "unknown",
+      "confidence": null,
+      "completeness": null
+    },
+    {
+      "source": "intent.node_count",
+      "raw_value": 6,
+      "timestamp": "2026-06-05T13:46:04.243853Z",
+      "context": {},
+      "source_type": "derived",
+      "source_system": "aidos",
+      "parser_or_adapter": "unknown",
+      "confidence": null,
+      "completeness": null
+    },
+    {
+      "source": "survey.loading_dock",
+      "raw_value": true,
+      "timestamp": "2026-06-05T13:46:04.243853Z",
+      "context": {},
+      "source_type": "derived",
+      "source_system": "aidos",
+      "parser_or_adapter": "unknown",
+      "confidence": null,
+      "completeness": null
+    },
+    {
+      "source": "survey.rack_floor_psf",
+      "raw_value": 150.0,
+      "timestamp": "2026-06-05T13:46:04.243853Z",
+      "context": {},
+      "source_type": "derived",
+      "source_system": "aidos",
+      "parser_or_adapter": "unknown",
+      "confidence": null,
+      "completeness": null
+    },
+    {
+      "source": "survey.available_circuits",
+      "raw_value": true,
+      "timestamp": "2026-06-05T13:46:04.243853Z",
+      "context": {},
+      "source_type": "derived",
+      "source_system": "aidos",
+      "parser_or_adapter": "unknown",
+      "confidence": null,
+      "completeness": null
+    },
+    {
+      "source": "survey.power_profile",
+      "raw_value": "208V 30A 3-phase",
+      "timestamp": "2026-06-05T13:46:04.243853Z",
+      "context": {},
+      "source_type": "derived",
+      "source_system": "aidos",
+      "parser_or_adapter": "unknown",
+      "confidence": null,
+      "completeness": null
+    },
+    {
+      "source": "survey.vlan_ids",
+      "raw_value": [
+        "1201",
+        "1202"
+      ],
+      "timestamp": "2026-06-05T13:46:04.243853Z",
+      "context": {
+        "vlan_config_needed": true
+      },
+      "source_type": "derived",
+      "source_system": "aidos",
+      "parser_or_adapter": "unknown",
+      "confidence": null,
+      "completeness": null
+    },
+    {
+      "source": "survey.uplinks",
+      "raw_value": "2x10G",
+      "timestamp": "2026-06-05T13:46:04.243853Z",
+      "context": {},
+      "source_type": "derived",
+      "source_system": "aidos",
+      "parser_or_adapter": "unknown",
+      "confidence": null,
+      "completeness": null
+    },
+    {
+      "source": "survey.ports_40g",
+      "raw_value": true,
+      "timestamp": "2026-06-05T13:46:04.243853Z",
+      "context": {
+        "node_count": 6
+      },
+      "source_type": "derived",
+      "source_system": "aidos",
+      "parser_or_adapter": "unknown",
+      "confidence": null,
+      "completeness": null
+    },
+    {
+      "source": "adapter.api",
+      "raw_value": {
+        "task_id": "task-001",
+        "adapter": "api",
+        "action": "sync_netbox_intent",
+        "payload": {
+          "target": "rag-serving-deployment"
+        },
+        "approval_required": false
+      },
+      "timestamp": "2026-06-05T13:46:04.246372Z",
+      "context": {
+        "approval_required": false
+      },
+      "source_type": "adapter",
+      "source_system": "nemosys",
+      "parser_or_adapter": "api",
+      "confidence": null,
+      "completeness": null
+    },
+    {
+      "source": "adapter.ansible",
+      "raw_value": {
+        "task_id": "task-002",
+        "adapter": "ansible",
+        "action": "configure_network",
+        "payload": {
+          "target": "switch-stack-a"
+        },
+        "approval_required": true
+      },
+      "timestamp": "2026-06-05T13:46:04.250217Z",
+      "context": {
+        "approval_required": true
+      },
+      "source_type": "adapter",
+      "source_system": "nemosys",
+      "parser_or_adapter": "ansible",
+      "confidence": null,
+      "completeness": null
+    },
+    {
+      "source": "ncp.approval",
+      "raw_value": {
+        "task_id": "task-003",
+        "status": "pending",
+        "reviewer": null,
+        "reason": null,
+        "updated_at": "2026-06-05T13:36:55.205139Z"
+      },
+      "timestamp": "2026-06-05T13:46:04.252217Z",
+      "context": {
+        "task_id": "task-003"
+      },
+      "source_type": "policy",
+      "source_system": "nemosys",
+      "parser_or_adapter": "approval_store",
+      "confidence": null,
+      "completeness": null
+    },
+    {
+      "source": "adapter.cli",
+      "raw_value": {
+        "task_id": "task-004",
+        "adapter": "cli",
+        "action": "post_deploy_health_check",
+        "payload": {
+          "target": "rag-serving-deployment"
+        },
+        "approval_required": false
+      },
+      "timestamp": "2026-06-05T13:46:04.252217Z",
+      "context": {
+        "approval_required": false
+      },
+      "source_type": "adapter",
+      "source_system": "nemosys",
+      "parser_or_adapter": "cli",
+      "confidence": null,
+      "completeness": null
+    }
+  ],
+  "generated_at": "2026-06-05T13:46:04.252217Z"
+}

@@ -1,0 +1,5 @@
+{
+  "survey_path": "aidos\\outputs\\projects\\ui-demo\\intake\\20260605_142835_survey_site_survey_example.json",
+  "bom_path": "aidos\\outputs\\projects\\ui-demo\\intake\\20260605_142835_workload_bom_example.yaml",
+  "workload_path": "aidos\\outputs\\projects\\ui-demo\\intake\\20260605_142835_bom_workload_profile_example.yaml"
+}

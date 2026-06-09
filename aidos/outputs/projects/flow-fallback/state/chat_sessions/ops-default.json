@@ -1,0 +1,25 @@
+{
+  "session_id": "ops-default",
+  "turns": [
+    {
+      "ts": "2026-06-05T14:58:57.180127+00:00",
+      "role": "user",
+      "message": "hi"
+    },
+    {
+      "ts": "2026-06-05T14:58:57.201894+00:00",
+      "role": "assistant",
+      "message": "Grounded matches from AIDOS artifacts:\n\ncanonical_sot.json:\n{\n  \"project\": {\n    \"customer_name\": \"unknown-customer\",\n    \"project_name\": \"aidos-project\",\n    \"region\": null,\n    \"site_name\": null\n  },\n  \"intent\": {\n    \"deployment_name\": \"demo-deployment\",\n    \"gpu_model\": \"H100\",\n    \"node_count\": 4,\n    \"target_platform\": \"Cisco AI Pod\",\n    \"required_vlans\": [\n      \"101\",\n      \"102\"\n    ]\n  },\n  \"site\": {\n    \"loading_dock\": true,\n    \"server_lift\": \n\npost_execution_verification_report.json:\n{\n  \"deployment\": \"demo-deployment\",\n  \"generated_at\": \"2026-06-05T14:23:21.797894Z\",\n  \"critical\": [\n    {\n      \"severity\": \"critical\",\n      \"code\": \"REAL_SERVER_LIFT\",\n      \"message\": \"Dense deployment requires a rated server lift.\",\n      \"recommendation\": \"Provide a rated server lift or reduce per-rack density.\",\n      \"evidence\": [\n        {\n          \"source\": \"survey.server_lift\",\n      \n\nvalidation_report.json:\n{\n  \"deployment\": \"demo-deployment\",\n  \"generated_at\": \"2026-06-05T14:23:21.796894Z\",\n  \"critical\": [\n    {\n      \"severity\": \"critical\",\n      \"code\": \"REAL_SERVER_LIFT\",\n      \"message\": \"Dense deployment requires a rated server lift.\",\n      \"recommendation\": \"Provide a rated server lift or reduce per-rack density.\",\n      \"evidence\": [\n        {\n          \"source\": \"survey.server_lift\",\n      "
+    },
+    {
+      "ts": "2026-06-05T17:30:57.769038+00:00",
+      "role": "user",
+      "message": "hi there"
+    },
+    {
+      "ts": "2026-06-05T17:30:57.791457+00:00",
+      "role": "assistant",
+      "message": "Grounded matches from NeMoSys artifacts:\n\ncanonical_sot.json:\n{\n  \"project\": {\n    \"customer_name\": \"unknown-customer\",\n    \"project_name\": \"aidos-project\",\n    \"region\": null,\n    \"site_name\": null\n  },\n  \"intent\": {\n    \"deployment_name\": \"demo-deployment\",\n    \"gpu_model\": \"H100\",\n    \"node_count\": 4,\n    \"target_platform\": \"Cisco AI Pod\",\n    \"required_vlans\": [\n      \"101\",\n      \"102\"\n    ]\n  },\n  \"site\": {\n    \"loading_dock\": true,\n    \"server_lift\": \n\npost_execution_verification_report.json:\n{\n  \"deployment\": \"demo-deployment\",\n  \"generated_at\": \"2026-06-05T14:23:21.797894Z\",\n  \"critical\": [\n    {\n      \"severity\": \"critical\",\n      \"code\": \"REAL_SERVER_LIFT\",\n      \"message\": \"Dense deployment requires a rated server lift.\",\n      \"recommendation\": \"Provide a rated server lift or reduce per-rack density.\",\n      \"evidence\": [\n        {\n          \"source\": \"survey.server_lift\",\n      \n\nvalidation_report.json:\n{\n  \"deployment\": \"demo-deployment\",\n  \"generated_at\": \"2026-06-05T14:23:21.796894Z\",\n  \"critical\": [\n    {\n      \"severity\": \"critical\",\n      \"code\": \"REAL_SERVER_LIFT\",\n      \"message\": \"Dense deployment requires a rated server lift.\",\n      \"recommendation\": \"Provide a rated server lift or reduce per-rack density.\",\n      \"evidence\": [\n        {\n          \"source\": \"survey.server_lift\",\n      "
+    }
+  ]
+}

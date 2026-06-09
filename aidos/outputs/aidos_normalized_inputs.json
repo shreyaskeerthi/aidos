@@ -1,0 +1,29 @@
+{
+  "survey": {
+    "loading_dock": true,
+    "server_lift": false,
+    "rack_floor_psf": 150.0,
+    "liquid_cooling": false,
+    "power_profile": "208V 30A 3-phase",
+    "available_circuits": true,
+    "uplinks": "2x10G",
+    "ports_40g": true,
+    "vlan_config_needed": true,
+    "vlan_ids": [
+      "1201",
+      "1202"
+    ],
+    "network_diagram_provided": false,
+    "layout_blueprint_provided": false
+  },
+  "bom": {
+    "deployment_name": "aidos-mvp",
+    "gpu_model": "H100",
+    "node_count": 8,
+    "target_platform": "Cisco AI Pod",
+    "required_vlans": [
+      "101",
+      "102"
+    ]
+  }
+}

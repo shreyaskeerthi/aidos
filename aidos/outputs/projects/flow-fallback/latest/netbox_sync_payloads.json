@@ -1,0 +1,88 @@
+{
+  "payload": {
+    "sites": [
+      {
+        "name": "aidos-project",
+        "slug": "aidos-project",
+        "region": null,
+        "tags": [
+          "aidos",
+          "intent"
+        ]
+      }
+    ],
+    "racks": [
+      {
+        "name": "demo-deployment-rack-a",
+        "site": "aidos-project",
+        "status": "planned",
+        "custom_fields": {
+          "required_slots": 1
+        }
+      }
+    ],
+    "devices": [
+      {
+        "name": "demo-deployment-node-1",
+        "site": "aidos-project",
+        "rack": "demo-deployment-rack-a",
+        "status": "planned",
+        "role": "gpu-compute",
+        "custom_fields": {
+          "gpu_model": "H100"
+        }
+      },
+      {
+        "name": "demo-deployment-node-2",
+        "site": "aidos-project",
+        "rack": "demo-deployment-rack-a",
+        "status": "planned",
+        "role": "gpu-compute",
+        "custom_fields": {
+          "gpu_model": "H100"
+        }
+      },
+      {
+        "name": "demo-deployment-node-3",
+        "site": "aidos-project",
+        "rack": "demo-deployment-rack-a",
+        "status": "planned",
+        "role": "gpu-compute",
+        "custom_fields": {
+          "gpu_model": "H100"
+        }
+      },
+      {
+        "name": "demo-deployment-node-4",
+        "site": "aidos-project",
+        "rack": "demo-deployment-rack-a",
+        "status": "planned",
+        "role": "gpu-compute",
+        "custom_fields": {
+          "gpu_model": "H100"
+        }
+      }
+    ],
+    "vlans": [
+      {
+        "name": "demo-deployment-vlan-1201",
+        "vid": 1201,
+        "site": "aidos-project"
+      },
+      {
+        "name": "demo-deployment-vlan-1202",
+        "vid": 1202,
+        "site": "aidos-project"
+      }
+    ],
+    "prefixes": [
+      {
+        "prefix": "10.100.0.0/24",
+        "site": "aidos-project",
+        "vrf": "demo-deployment-vrf",
+        "status": "planned"
+      }
+    ]
+  },
+  "sync_result": null
+}

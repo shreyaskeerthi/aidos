@@ -1,0 +1,128 @@
+{
+  "payload": {
+    "sites": [
+      {
+        "name": "aidos-project",
+        "slug": "aidos-project",
+        "region": null,
+        "tags": [
+          "aidos",
+          "intent"
+        ]
+      }
+    ],
+    "racks": [
+      {
+        "name": "aidos-mvp-rack-a",
+        "site": "aidos-project",
+        "status": "planned",
+        "custom_fields": {
+          "required_slots": 2
+        }
+      }
+    ],
+    "devices": [
+      {
+        "name": "aidos-mvp-node-1",
+        "site": "aidos-project",
+        "rack": "aidos-mvp-rack-a",
+        "status": "planned",
+        "role": "gpu-compute",
+        "custom_fields": {
+          "gpu_model": "H100"
+        }
+      },
+      {
+        "name": "aidos-mvp-node-2",
+        "site": "aidos-project",
+        "rack": "aidos-mvp-rack-a",
+        "status": "planned",
+        "role": "gpu-compute",
+        "custom_fields": {
+          "gpu_model": "H100"
+        }
+      },
+      {
+        "name": "aidos-mvp-node-3",
+        "site": "aidos-project",
+        "rack": "aidos-mvp-rack-a",
+        "status": "planned",
+        "role": "gpu-compute",
+        "custom_fields": {
+          "gpu_model": "H100"
+        }
+      },
+      {
+        "name": "aidos-mvp-node-4",
+        "site": "aidos-project",
+        "rack": "aidos-mvp-rack-a",
+        "status": "planned",
+        "role": "gpu-compute",
+        "custom_fields": {
+          "gpu_model": "H100"
+        }
+      },
+      {
+        "name": "aidos-mvp-node-5",
+        "site": "aidos-project",
+        "rack": "aidos-mvp-rack-a",
+        "status": "planned",
+        "role": "gpu-compute",
+        "custom_fields": {
+          "gpu_model": "H100"
+        }
+      },
+      {
+        "name": "aidos-mvp-node-6",
+        "site": "aidos-project",
+        "rack": "aidos-mvp-rack-a",
+        "status": "planned",
+        "role": "gpu-compute",
+        "custom_fields": {
+          "gpu_model": "H100"
+        }
+      },
+      {
+        "name": "aidos-mvp-node-7",
+        "site": "aidos-project",
+        "rack": "aidos-mvp-rack-a",
+        "status": "planned",
+        "role": "gpu-compute",
+        "custom_fields": {
+          "gpu_model": "H100"
+        }
+      },
+      {
+        "name": "aidos-mvp-node-8",
+        "site": "aidos-project",
+        "rack": "aidos-mvp-rack-a",
+        "status": "planned",
+        "role": "gpu-compute",
+        "custom_fields": {
+          "gpu_model": "H100"
+        }
+      }
+    ],
+    "vlans": [
+      {
+        "name": "aidos-mvp-vlan-1201",
+        "vid": 1201,
+        "site": "aidos-project"
+      },
+      {
+        "name": "aidos-mvp-vlan-1202",
+        "vid": 1202,
+        "site": "aidos-project"
+      }
+    ],
+    "prefixes": [
+      {
+        "prefix": "10.100.0.0/24",
+        "site": "aidos-project",
+        "vrf": "aidos-mvp-vrf",
+        "status": "planned"
+      }
+    ]
+  },
+  "sync_result": null
+}

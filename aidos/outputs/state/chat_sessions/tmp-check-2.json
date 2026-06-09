@@ -1,0 +1,15 @@
+{
+  "session_id": "tmp-check-2",
+  "turns": [
+    {
+      "ts": "2026-06-05T15:18:25.715380+00:00",
+      "role": "user",
+      "message": "hi"
+    },
+    {
+      "ts": "2026-06-05T15:18:25.717383+00:00",
+      "role": "assistant",
+      "message": "Welcome. I'm NeMoSys, your operator console for intake, validation, planning, NetBox reconciliation, and execution tracking. Ask about the current project, upload intake files, or run the workflow to generate artifacts and traces."
+    }
+  ]
+}

@@ -41,6 +41,9 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
+pyats = [
+    "pyats[full]>=24.11,<26.0",
+]
 rag = [
     "langchain-openai>=0.2,<1.1.9",
     "openai>=1.0,<2.0",

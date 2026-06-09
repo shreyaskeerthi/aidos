@@ -1,0 +1,7 @@
+deployment_name: aidos-mvp
+gpu_model: H100
+node_count: 8
+target_platform: Cisco AI Pod
+required_vlans:
+  - "101"
+  - "102"

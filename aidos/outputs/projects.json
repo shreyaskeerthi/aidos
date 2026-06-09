@@ -1,0 +1,33 @@
+{
+  "projects": [
+    {
+      "id": "ui-demo",
+      "name": "UI Demo",
+      "description": "demo project",
+      "created_at": "2026-06-05T14:14:51.574665+00:00",
+      "output_dir": "aidos\\outputs\\projects\\ui-demo"
+    },
+    {
+      "id": "flow-fallback",
+      "name": "Flow Fallback",
+      "description": "fallback test",
+      "created_at": "2026-06-05T14:23:21.771708+00:00",
+      "output_dir": "aidos\\outputs\\projects\\flow-fallback"
+    },
+    {
+      "id": "swapped-upload-recovery",
+      "name": "Swapped Upload Recovery",
+      "description": "swap test",
+      "created_at": "2026-06-05T14:26:35.793322+00:00",
+      "output_dir": "aidos\\outputs\\projects\\swapped-upload-recovery"
+    },
+    {
+      "id": "swapped-upload-recovery-2",
+      "name": "Swapped Upload Recovery 2",
+      "description": "swap test",
+      "created_at": "2026-06-05T14:27:01.164038+00:00",
+      "output_dir": "aidos\\outputs\\projects\\swapped-upload-recovery-2"
+    }
+  ],
+  "selected_project": "flow-fallback"
+}

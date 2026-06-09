@@ -1,0 +1,7 @@
+- name: AIDOS task task-003 - provision_compute
+  hosts: localhost
+  gather_facts: false
+  tasks:
+  - name: Execute provision_compute
+    debug:
+      msg: task_id=task-003 target=rag-serving-deployment preferred_executor=api approval_required=True

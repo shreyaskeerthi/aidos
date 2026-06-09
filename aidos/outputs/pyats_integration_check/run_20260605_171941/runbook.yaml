@@ -1,0 +1,64 @@
+deployment: rag-serving-deployment
+tasks:
+- id: task-001
+  intent: sync_netbox_intent
+  target: rag-serving-deployment
+  preferred_executor: api
+  fallback_executors:
+  - cli
+  - ansible
+  - mcp
+  - playwright
+  preconditions:
+  - sot_built
+  approval_required: false
+  evidence_required: true
+- id: task-002
+  intent: configure_network
+  target: switch-stack-a
+  preferred_executor: ansible
+  fallback_executors:
+  - api
+  - cli
+  - mcp
+  - playwright
+  preconditions:
+  - netbox_synced
+  - validation_passed
+  approval_required: true
+  evidence_required: true
+- id: task-003
+  intent: provision_compute
+  target: rag-serving-deployment
+  preferred_executor: api
+  fallback_executors:
+  - ansible
+  - cli
+  - mcp
+  - playwright
+  preconditions:
+  - netbox_synced
+  - validation_passed
+  approval_required: true
+  evidence_required: true
+- id: task-004
+  intent: post_deploy_health_check
+  target: rag-serving-deployment
+  preferred_executor: pyats
+  fallback_executors:
+  - cli
+  - api
+  - ansible
+  - mcp
+  - playwright
+  preconditions:
+  - execution_complete
+  approval_required: false
+  evidence_required: true
+notes:
+- 'Executor priority order: api > cli > ansible > mcp > playwright; post-check optionally
+  promotes pyATS when configured.'
+- 'Validation readiness at planning time: not_ready'
+- 'pyATS health-check enabled using testbed: aidos/examples/missing_pyats_testbed.yaml'
+- 'Critical findings exist: execution should remain approval-gated.'
+generated_at: 2026-06-05 17:19:41.496428+00:00

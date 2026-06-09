@@ -1,0 +1,3 @@
+workload_name: demo
+desired_node_count: 4
+gpu_model_preference: H100

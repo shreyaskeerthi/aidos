@@ -1,0 +1,27 @@
+{
+  "source": "execution.records",
+  "signals": {
+    "executed_tasks": [
+      {
+        "task_id": "task-001",
+        "status": "completed",
+        "executor": "api"
+      },
+      {
+        "task_id": "task-002",
+        "status": "blocked_pending_approval",
+        "executor": "ansible"
+      },
+      {
+        "task_id": "task-003",
+        "status": "blocked_pending_approval",
+        "executor": "api"
+      },
+      {
+        "task_id": "task-004",
+        "status": "completed",
+        "executor": "cli"
+      }
+    ]
+  }
+}

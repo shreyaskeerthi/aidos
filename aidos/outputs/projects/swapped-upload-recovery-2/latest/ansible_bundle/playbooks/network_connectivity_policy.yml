@@ -1,0 +1,7 @@
+- name: AIDOS task task-002 - configure_network
+  hosts: localhost
+  gather_facts: false
+  tasks:
+  - name: Execute configure_network
+    debug:
+      msg: task_id=task-002 target=switch-stack-a preferred_executor=ansible approval_required=True

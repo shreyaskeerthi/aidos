@@ -1,0 +1,41 @@
+{
+  "items": [
+    {
+      "field": "site.available_rack_slots",
+      "reason": "Value is missing from intake payload.",
+      "severity": "warning",
+      "evidence": [
+        {
+          "source": "site.available_rack_slots",
+          "raw_value": null,
+          "timestamp": "2026-06-05T14:23:21.796894Z",
+          "context": {},
+          "source_type": "sot",
+          "source_system": "aidos",
+          "parser_or_adapter": "missing-data-check",
+          "confidence": null,
+          "completeness": null
+        }
+      ]
+    },
+    {
+      "field": "site.available_power_kw",
+      "reason": "Value is missing from intake payload.",
+      "severity": "warning",
+      "evidence": [
+        {
+          "source": "site.available_power_kw",
+          "raw_value": null,
+          "timestamp": "2026-06-05T14:23:21.796894Z",
+          "context": {},
+          "source_type": "sot",
+          "source_system": "aidos",
+          "parser_or_adapter": "missing-data-check",
+          "confidence": null,
+          "completeness": null
+        }
+      ]
+    }
+  ],
+  "summary": "Missing data fields: 2"
+}

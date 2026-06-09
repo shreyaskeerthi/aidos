@@ -1,0 +1,108 @@
+{
+  "payload": {
+    "sites": [
+      {
+        "name": "aidos-project",
+        "slug": "aidos-project",
+        "region": null,
+        "tags": [
+          "aidos",
+          "intent"
+        ]
+      }
+    ],
+    "racks": [
+      {
+        "name": "rag-serving-deployment-rack-a",
+        "site": "aidos-project",
+        "status": "planned",
+        "custom_fields": {
+          "required_slots": 2
+        }
+      }
+    ],
+    "devices": [
+      {
+        "name": "rag-serving-deployment-node-1",
+        "site": "aidos-project",
+        "rack": "rag-serving-deployment-rack-a",
+        "status": "planned",
+        "role": "gpu-compute",
+        "custom_fields": {
+          "gpu_model": "H100"
+        }
+      },
+      {
+        "name": "rag-serving-deployment-node-2",
+        "site": "aidos-project",
+        "rack": "rag-serving-deployment-rack-a",
+        "status": "planned",
+        "role": "gpu-compute",
+        "custom_fields": {
+          "gpu_model": "H100"
+        }
+      },
+      {
+        "name": "rag-serving-deployment-node-3",
+        "site": "aidos-project",
+        "rack": "rag-serving-deployment-rack-a",
+        "status": "planned",
+        "role": "gpu-compute",
+        "custom_fields": {
+          "gpu_model": "H100"
+        }
+      },
+      {
+        "name": "rag-serving-deployment-node-4",
+        "site": "aidos-project",
+        "rack": "rag-serving-deployment-rack-a",
+        "status": "planned",
+        "role": "gpu-compute",
+        "custom_fields": {
+          "gpu_model": "H100"
+        }
+      },
+      {
+        "name": "rag-serving-deployment-node-5",
+        "site": "aidos-project",
+        "rack": "rag-serving-deployment-rack-a",
+        "status": "planned",
+        "role": "gpu-compute",
+        "custom_fields": {
+          "gpu_model": "H100"
+        }
+      },
+      {
+        "name": "rag-serving-deployment-node-6",
+        "site": "aidos-project",
+        "rack": "rag-serving-deployment-rack-a",
+        "status": "planned",
+        "role": "gpu-compute",
+        "custom_fields": {
+          "gpu_model": "H100"
+        }
+      }
+    ],
+    "vlans": [
+      {
+        "name": "rag-serving-deployment-vlan-1201",
+        "vid": 1201,
+        "site": "aidos-project"
+      },
+      {
+        "name": "rag-serving-deployment-vlan-1202",
+        "vid": 1202,
+        "site": "aidos-project"
+      }
+    ],
+    "prefixes": [
+      {
+        "prefix": "10.100.0.0/24",
+        "site": "aidos-project",
+        "vrf": "rag-serving-deployment-vrf",
+        "status": "planned"
+      }
+    ]
+  },
+  "sync_result": null
+}

@@ -1,0 +1,15 @@
+{
+  "session_id": "ops-triage",
+  "turns": [
+    {
+      "ts": "2026-06-05T13:35:23.507216+00:00",
+      "role": "user",
+      "message": "what runbooks were generated"
+    },
+    {
+      "ts": "2026-06-05T13:35:23.526189+00:00",
+      "role": "assistant",
+      "message": "Grounded matches from AIDOS artifacts:\n\nagentic_task_graph.json:\n{\n  \"deployment\": \"rag-serving-deployment\",\n  \"nodes\": [\n    {\n      \"id\": \"task-001\",\n      \"intent\": \"sync_netbox_intent\",\n      \"target\": \"rag-serving-deployment\",\n      \"preferred_executor\": \"api\",\n      \"fallback_executors\": [\n        \"cli\",\n        \"ansible\",\n        \"mcp\",\n        \"playwright\"\n      ],\n      \"preconditions\": [\n        \"sot_built\"\n      ],\n      \"approval_required\": false,\n \n\nansible_playbook.yml:\n- name: AIDOS plan for rag-serving-deployment\n  hosts: all\n  gather_facts: false\n  tasks:\n  - name: sync_netbox_intent\n    debug:\n      msg: Task task-001 target=rag-serving-deployment preferred_executor=api\n  - name: configure_network\n    debug:\n      msg: Task task-002 target=switch-stack-a preferred_executor=ansible\n  - name: provision_compute\n    debug:\n      msg: Task task-003 target=rag-serv\n\nevidence_bundle.json:\n{\n  \"deployment\": \"rag-serving-deployment\",\n  \"evidence\": [\n    {\n      \"source\": \"intake.survey\",\n      \"raw_value\": {\n        \"loading_dock\": true,\n        \"server_lift\": false,\n        \"rack_floor_psf\": 150.0,\n        \"liquid_cooling\": false,\n        \"power_profile\": \"208V 30A 3-phase\",\n        \"available_circuits\": true,\n        \"uplinks\": \"2x10G\",\n        \"ports_40g\": true,\n        \"vlan_conf"
+    }
+  ]
+}

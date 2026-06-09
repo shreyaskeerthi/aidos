@@ -1,0 +1,7 @@
+workload_name: rag-serving
+latency_target_ms: 150
+throughput_target_tps: 120
+gpu_model_preference: H100
+desired_node_count: 6
+storage_tib: 120
+network_profile: east-west-heavy

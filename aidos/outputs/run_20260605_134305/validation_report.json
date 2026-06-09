@@ -1,0 +1,314 @@
+{
+  "deployment": "rag-serving-deployment",
+  "generated_at": "2026-06-05T13:43:05.798884Z",
+  "critical": [
+    {
+      "severity": "critical",
+      "code": "REAL_SERVER_LIFT",
+      "message": "Dense deployment requires a rated server lift.",
+      "recommendation": "Provide a rated server lift or reduce per-rack density.",
+      "evidence": [
+        {
+          "source": "survey.server_lift",
+          "raw_value": false,
+          "timestamp": "2026-06-05T13:43:05.798884Z",
+          "context": {
+            "dense_install": true
+          },
+          "source_type": "derived",
+          "source_system": "aidos",
+          "parser_or_adapter": "unknown",
+          "confidence": null,
+          "completeness": null
+        }
+      ]
+    },
+    {
+      "severity": "critical",
+      "code": "REAL_RACK_SLOTS",
+      "message": "Rack slot availability is missing or below requirement.",
+      "recommendation": "Increase rack allocation or reduce initial rollout size.",
+      "evidence": [
+        {
+          "source": "survey.available_rack_slots",
+          "raw_value": null,
+          "timestamp": "2026-06-05T13:43:05.798884Z",
+          "context": {
+            "required_rack_slots": 2
+          },
+          "source_type": "derived",
+          "source_system": "aidos",
+          "parser_or_adapter": "unknown",
+          "confidence": null,
+          "completeness": null
+        }
+      ]
+    },
+    {
+      "severity": "critical",
+      "code": "REAL_POWER_BUDGET",
+      "message": "Available power budget is missing or below estimated draw.",
+      "recommendation": "Increase available power capacity before deployment.",
+      "evidence": [
+        {
+          "source": "survey.available_power_kw",
+          "raw_value": null,
+          "timestamp": "2026-06-05T13:43:05.798884Z",
+          "context": {
+            "estimated_power_kw": 60.0
+          },
+          "source_type": "derived",
+          "source_system": "aidos",
+          "parser_or_adapter": "unknown",
+          "confidence": null,
+          "completeness": null
+        }
+      ]
+    }
+  ],
+  "warning": [
+    {
+      "severity": "warning",
+      "code": "REAL_COOLING_MODE",
+      "message": "High-density GPU deployment is not marked as liquid-cooled.",
+      "recommendation": "Confirm thermal envelope or enable liquid cooling path.",
+      "evidence": [
+        {
+          "source": "survey.liquid_cooling",
+          "raw_value": false,
+          "timestamp": "2026-06-05T13:43:05.798884Z",
+          "context": {
+            "gpu_model": "H100"
+          },
+          "source_type": "derived",
+          "source_system": "aidos",
+          "parser_or_adapter": "unknown",
+          "confidence": null,
+          "completeness": null
+        }
+      ]
+    },
+    {
+      "severity": "warning",
+      "code": "REAL_NETWORK_DIAGRAM",
+      "message": "Network diagram is missing.",
+      "recommendation": "Attach an L2/L3 diagram with VLAN and uplink paths.",
+      "evidence": [
+        {
+          "source": "survey.network_diagram_provided",
+          "raw_value": false,
+          "timestamp": "2026-06-05T13:43:05.798884Z",
+          "context": {},
+          "source_type": "derived",
+          "source_system": "aidos",
+          "parser_or_adapter": "unknown",
+          "confidence": null,
+          "completeness": null
+        }
+      ]
+    },
+    {
+      "severity": "warning",
+      "code": "REAL_LAYOUT_BLUEPRINT",
+      "message": "Rack layout blueprint is missing.",
+      "recommendation": "Provide rack position and cabling blueprint.",
+      "evidence": [
+        {
+          "source": "survey.layout_blueprint_provided",
+          "raw_value": false,
+          "timestamp": "2026-06-05T13:43:05.798884Z",
+          "context": {},
+          "source_type": "derived",
+          "source_system": "aidos",
+          "parser_or_adapter": "unknown",
+          "confidence": null,
+          "completeness": null
+        }
+      ]
+    },
+    {
+      "severity": "warning",
+      "code": "REAL_COOLING_BUDGET",
+      "message": "Cooling budget is missing or below estimated thermal output.",
+      "recommendation": "Increase cooling capacity or reduce rack density.",
+      "evidence": [
+        {
+          "source": "survey.available_cooling_kw",
+          "raw_value": null,
+          "timestamp": "2026-06-05T13:43:05.798884Z",
+          "context": {
+            "estimated_cooling_kw": 54.0
+          },
+          "source_type": "derived",
+          "source_system": "aidos",
+          "parser_or_adapter": "unknown",
+          "confidence": null,
+          "completeness": null
+        }
+      ]
+    }
+  ],
+  "passed": [
+    {
+      "severity": "passed",
+      "code": "INTENT_NODE_COUNT_VALID",
+      "message": "Node count is a positive integer.",
+      "recommendation": "Set node_count >= 1 in BOM.",
+      "evidence": [
+        {
+          "source": "intent.node_count",
+          "raw_value": 6,
+          "timestamp": "2026-06-05T13:43:05.798884Z",
+          "context": {},
+          "source_type": "derived",
+          "source_system": "aidos",
+          "parser_or_adapter": "unknown",
+          "confidence": null,
+          "completeness": null
+        }
+      ]
+    },
+    {
+      "severity": "passed",
+      "code": "REAL_LOADING_DOCK",
+      "message": "Loading dock is available.",
+      "recommendation": "Confirm loading dock access before delivery window.",
+      "evidence": [
+        {
+          "source": "survey.loading_dock",
+          "raw_value": true,
+          "timestamp": "2026-06-05T13:43:05.798884Z",
+          "context": {},
+          "source_type": "derived",
+          "source_system": "aidos",
+          "parser_or_adapter": "unknown",
+          "confidence": null,
+          "completeness": null
+        }
+      ]
+    },
+    {
+      "severity": "passed",
+      "code": "REAL_FLOOR_LOAD",
+      "message": "Floor load rating meets minimum 150 psf.",
+      "recommendation": "Validate structural floor load or move deployment zone.",
+      "evidence": [
+        {
+          "source": "survey.rack_floor_psf",
+          "raw_value": 150.0,
+          "timestamp": "2026-06-05T13:43:05.798884Z",
+          "context": {},
+          "source_type": "derived",
+          "source_system": "aidos",
+          "parser_or_adapter": "unknown",
+          "confidence": null,
+          "completeness": null
+        }
+      ]
+    },
+    {
+      "severity": "passed",
+      "code": "REAL_POWER_CIRCUITS",
+      "message": "Dedicated power circuits are available.",
+      "recommendation": "Provision dedicated circuits before install.",
+      "evidence": [
+        {
+          "source": "survey.available_circuits",
+          "raw_value": true,
+          "timestamp": "2026-06-05T13:43:05.798884Z",
+          "context": {},
+          "source_type": "derived",
+          "source_system": "aidos",
+          "parser_or_adapter": "unknown",
+          "confidence": null,
+          "completeness": null
+        }
+      ]
+    },
+    {
+      "severity": "passed",
+      "code": "REAL_POWER_PROFILE",
+      "message": "Power profile includes 208V 30A characteristics.",
+      "recommendation": "Verify power profile against rack PDU and node draw.",
+      "evidence": [
+        {
+          "source": "survey.power_profile",
+          "raw_value": "208V 30A 3-phase",
+          "timestamp": "2026-06-05T13:43:05.798884Z",
+          "context": {},
+          "source_type": "derived",
+          "source_system": "aidos",
+          "parser_or_adapter": "unknown",
+          "confidence": null,
+          "completeness": null
+        }
+      ]
+    },
+    {
+      "severity": "passed",
+      "code": "REAL_VLAN_PLAN",
+      "message": "VLAN plan is available when required.",
+      "recommendation": "Define required VLAN IDs and tagging/trunk strategy.",
+      "evidence": [
+        {
+          "source": "survey.vlan_ids",
+          "raw_value": [
+            "1201",
+            "1202"
+          ],
+          "timestamp": "2026-06-05T13:43:05.798884Z",
+          "context": {
+            "vlan_config_needed": true
+          },
+          "source_type": "derived",
+          "source_system": "aidos",
+          "parser_or_adapter": "unknown",
+          "confidence": null,
+          "completeness": null
+        }
+      ]
+    },
+    {
+      "severity": "passed",
+      "code": "REAL_UPLINK_CAPACITY",
+      "message": "Uplink capacity is declared.",
+      "recommendation": "Confirm uplink count and speed per rack leaf.",
+      "evidence": [
+        {
+          "source": "survey.uplinks",
+          "raw_value": "2x10G",
+          "timestamp": "2026-06-05T13:43:05.798884Z",
+          "context": {},
+          "source_type": "derived",
+          "source_system": "aidos",
+          "parser_or_adapter": "unknown",
+          "confidence": null,
+          "completeness": null
+        }
+      ]
+    },
+    {
+      "severity": "passed",
+      "code": "REAL_40G_PORTS",
+      "message": "40G port requirements are satisfied.",
+      "recommendation": "Validate switch port speed and breakout plan.",
+      "evidence": [
+        {
+          "source": "survey.ports_40g",
+          "raw_value": true,
+          "timestamp": "2026-06-05T13:43:05.798884Z",
+          "context": {
+            "node_count": 6
+          },
+          "source_type": "derived",
+          "source_system": "aidos",
+          "parser_or_adapter": "unknown",
+          "confidence": null,
+          "completeness": null
+        }
+      ]
+    }
+  ],
+  "readiness": "not_ready",
+  "summary": "Validation complete: 3 critical, 4 warning, 8 passed. Readiness=not_ready."
+}

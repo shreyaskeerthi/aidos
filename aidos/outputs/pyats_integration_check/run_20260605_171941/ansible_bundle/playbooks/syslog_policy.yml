@@ -1,0 +1,8 @@
+- name: AIDOS task task-004 - post_deploy_health_check
+  hosts: localhost
+  gather_facts: false
+  tasks:
+  - name: Execute post_deploy_health_check
+    debug:
+      msg: task_id=task-004 target=rag-serving-deployment preferred_executor=pyats
+        approval_required=False

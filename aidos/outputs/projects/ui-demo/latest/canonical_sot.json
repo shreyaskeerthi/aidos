@@ -1,0 +1,163 @@
+{
+  "project": {
+    "customer_name": "unknown-customer",
+    "project_name": "aidos-project",
+    "region": null,
+    "site_name": null
+  },
+  "intent": {
+    "deployment_name": "aidos-mvp",
+    "gpu_model": "H100",
+    "node_count": 8,
+    "target_platform": "Cisco AI Pod",
+    "required_vlans": [
+      "101",
+      "102"
+    ]
+  },
+  "site": {
+    "loading_dock": true,
+    "server_lift": false,
+    "rack_floor_psf": 150.0,
+    "liquid_cooling": false,
+    "power_profile": "208V 30A 3-phase",
+    "available_circuits": true,
+    "uplinks": "2x10G",
+    "ports_40g": true,
+    "vlan_config_needed": true,
+    "vlan_ids": [
+      "1201",
+      "1202"
+    ],
+    "network_diagram_provided": false,
+    "layout_blueprint_provided": false,
+    "available_rack_slots": null,
+    "available_power_kw": null,
+    "available_cooling_kw": null
+  },
+  "expected": {
+    "site": {
+      "loading_dock": true,
+      "server_lift": false,
+      "rack_floor_psf": 150.0,
+      "liquid_cooling": false,
+      "power_profile": "208V 30A 3-phase",
+      "available_circuits": true,
+      "uplinks": "2x10G",
+      "ports_40g": true,
+      "vlan_config_needed": true,
+      "vlan_ids": [
+        "1201",
+        "1202"
+      ],
+      "network_diagram_provided": false,
+      "layout_blueprint_provided": false,
+      "available_rack_slots": null,
+      "available_power_kw": null,
+      "available_cooling_kw": null
+    },
+    "intent": {
+      "deployment_name": "aidos-mvp",
+      "gpu_model": "H100",
+      "node_count": 8,
+      "target_platform": "Cisco AI Pod",
+      "required_vlans": [
+        "101",
+        "102"
+      ]
+    },
+    "required_rack_slots": 2,
+    "estimated_power_kw": 80.0,
+    "estimated_cooling_kw": 72.0,
+    "high_density_gpu": true
+  },
+  "workload": {
+    "workload_name": "rag-serving",
+    "latency_target_ms": 150,
+    "throughput_target_tps": 120,
+    "gpu_model_preference": "H100",
+    "desired_node_count": 6,
+    "storage_tib": 120,
+    "network_profile": "east-west-heavy"
+  },
+  "provenance": [
+    {
+      "source": "intake.survey",
+      "raw_value": {
+        "loading_dock": true,
+        "server_lift": false,
+        "rack_floor_psf": 150.0,
+        "liquid_cooling": false,
+        "power_profile": "208V 30A 3-phase",
+        "available_circuits": true,
+        "uplinks": "2x10G",
+        "ports_40g": true,
+        "vlan_config_needed": true,
+        "vlan_ids": [
+          "1201",
+          "1202"
+        ],
+        "network_diagram_provided": false,
+        "layout_blueprint_provided": false
+      },
+      "timestamp": "2026-06-05T14:28:40.886532Z",
+      "context": {},
+      "source_type": "file",
+      "source_system": "intake",
+      "parser_or_adapter": "read_key_value_file",
+      "confidence": null,
+      "completeness": null
+    },
+    {
+      "source": "intake.bom",
+      "raw_value": {
+        "deployment_name": "aidos-mvp",
+        "gpu_model": "H100",
+        "node_count": 8,
+        "target_platform": "Cisco AI Pod",
+        "required_vlans": [
+          "101",
+          "102"
+        ]
+      },
+      "timestamp": "2026-06-05T14:28:40.886532Z",
+      "context": {},
+      "source_type": "file",
+      "source_system": "intake",
+      "parser_or_adapter": "provided_bom",
+      "confidence": null,
+      "completeness": null
+    },
+    {
+      "source": "intake.project",
+      "raw_value": {},
+      "timestamp": "2026-06-05T14:28:40.886532Z",
+      "context": {},
+      "source_type": "file",
+      "source_system": "intake",
+      "parser_or_adapter": "read_key_value_file",
+      "confidence": null,
+      "completeness": null
+    },
+    {
+      "source": "intake.workload",
+      "raw_value": {
+        "workload_name": "rag-serving",
+        "latency_target_ms": 150,
+        "throughput_target_tps": 120,
+        "gpu_model_preference": "H100",
+        "desired_node_count": 6,
+        "storage_tib": 120,
+        "network_profile": "east-west-heavy"
+      },
+      "timestamp": "2026-06-05T14:28:40.886532Z",
+      "context": {},
+      "source_type": "file",
+      "source_system": "intake",
+      "parser_or_adapter": "read_key_value_file",
+      "confidence": null,
+      "completeness": null
+    }
+  ],
+  "generated_at": "2026-06-05T14:28:40.886532Z"
+}

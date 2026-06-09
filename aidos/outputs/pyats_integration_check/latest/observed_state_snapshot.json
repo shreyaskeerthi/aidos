@@ -1,0 +1,64 @@
+{
+  "source": "execution.records",
+  "signals": {
+    "executed_tasks": [
+      {
+        "task_id": "task-001",
+        "status": "completed",
+        "executor": "api",
+        "output": {
+          "adapter": "api",
+          "action": "sync_netbox_intent",
+          "target": "rag-serving-deployment",
+          "normalized": true,
+          "attempted_adapters": [
+            "api"
+          ]
+        }
+      },
+      {
+        "task_id": "task-002",
+        "status": "completed",
+        "executor": "ansible",
+        "output": {
+          "adapter": "ansible",
+          "action": "configure_network",
+          "target": "switch-stack-a",
+          "normalized": true,
+          "attempted_adapters": [
+            "ansible"
+          ]
+        }
+      },
+      {
+        "task_id": "task-003",
+        "status": "completed",
+        "executor": "api",
+        "output": {
+          "adapter": "api",
+          "action": "provision_compute",
+          "target": "rag-serving-deployment",
+          "normalized": true,
+          "attempted_adapters": [
+            "api"
+          ]
+        }
+      },
+      {
+        "task_id": "task-004",
+        "status": "completed",
+        "executor": "cli",
+        "output": {
+          "adapter": "cli",
+          "action": "post_deploy_health_check",
+          "target": "rag-serving-deployment",
+          "normalized": true,
+          "attempted_adapters": [
+            "pyats",
+            "cli"
+          ]
+        }
+      }
+    ]
+  }
+}

@@ -1,0 +1,5 @@
+{
+  "survey_path": "aidos\\outputs\\projects\\swapped-upload-recovery-2\\intake\\20260605_142701_workload_site_survey_example.json",
+  "bom_path": "aidos\\outputs\\projects\\swapped-upload-recovery-2\\intake\\20260605_142701_survey_bom_example.yaml",
+  "workload_path": "aidos\\outputs\\projects\\swapped-upload-recovery-2\\intake\\20260605_142701_bom_workload_profile_example.yaml"
+}

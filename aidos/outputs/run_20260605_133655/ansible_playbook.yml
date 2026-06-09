@@ -1,0 +1,16 @@
+- name: AIDOS plan for rag-serving-deployment
+  hosts: all
+  gather_facts: false
+  tasks:
+  - name: sync_netbox_intent
+    debug:
+      msg: Task task-001 target=rag-serving-deployment preferred_executor=api
+  - name: configure_network
+    debug:
+      msg: Task task-002 target=switch-stack-a preferred_executor=ansible
+  - name: provision_compute
+    debug:
+      msg: Task task-003 target=rag-serving-deployment preferred_executor=api
+  - name: post_deploy_health_check
+    debug:
+      msg: Task task-004 target=rag-serving-deployment preferred_executor=cli

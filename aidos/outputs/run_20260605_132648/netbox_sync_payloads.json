@@ -1,0 +1,98 @@
+{
+  "payload": {
+    "sites": [
+      {
+        "name": "aidos-project",
+        "slug": "aidos-project",
+        "region": null,
+        "tags": [
+          "aidos",
+          "intent"
+        ]
+      }
+    ],
+    "racks": [
+      {
+        "name": "inference-deployment-rack-a",
+        "site": "aidos-project",
+        "status": "planned",
+        "custom_fields": {
+          "required_slots": 1
+        }
+      }
+    ],
+    "devices": [
+      {
+        "name": "inference-deployment-node-1",
+        "site": "aidos-project",
+        "rack": "inference-deployment-rack-a",
+        "status": "planned",
+        "role": "gpu-compute",
+        "custom_fields": {
+          "gpu_model": "H100"
+        }
+      },
+      {
+        "name": "inference-deployment-node-2",
+        "site": "aidos-project",
+        "rack": "inference-deployment-rack-a",
+        "status": "planned",
+        "role": "gpu-compute",
+        "custom_fields": {
+          "gpu_model": "H100"
+        }
+      },
+      {
+        "name": "inference-deployment-node-3",
+        "site": "aidos-project",
+        "rack": "inference-deployment-rack-a",
+        "status": "planned",
+        "role": "gpu-compute",
+        "custom_fields": {
+          "gpu_model": "H100"
+        }
+      },
+      {
+        "name": "inference-deployment-node-4",
+        "site": "aidos-project",
+        "rack": "inference-deployment-rack-a",
+        "status": "planned",
+        "role": "gpu-compute",
+        "custom_fields": {
+          "gpu_model": "H100"
+        }
+      }
+    ],
+    "vlans": [
+      {
+        "name": "inference-deployment-vlan-1201",
+        "vid": 1201,
+        "site": "aidos-project"
+      },
+      {
+        "name": "inference-deployment-vlan-1202",
+        "vid": 1202,
+        "site": "aidos-project"
+      }
+    ],
+    "prefixes": [
+      {
+        "prefix": "10.100.0.0/24",
+        "site": "aidos-project",
+        "vrf": "inference-deployment-vrf",
+        "status": "planned"
+      }
+    ]
+  },
+  "sync_result": {
+    "status": "simulated",
+    "base_url": "http://netbox.local/api",
+    "objects": {
+      "sites": 1,
+      "racks": 1,
+      "devices": 4,
+      "vlans": 2,
+      "prefixes": 1
+    }
+  }
+}

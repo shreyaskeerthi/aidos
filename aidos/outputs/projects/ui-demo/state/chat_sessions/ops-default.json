@@ -1,0 +1,35 @@
+{
+  "session_id": "ops-default",
+  "turns": [
+    {
+      "ts": "2026-06-05T14:30:42.673569+00:00",
+      "role": "user",
+      "message": "what is agentic_task_graph.json (2116 bytes)"
+    },
+    {
+      "ts": "2026-06-05T14:30:42.696748+00:00",
+      "role": "assistant",
+      "message": "Grounded matches from AIDOS artifacts:\n\nagentic_task_graph.json:\n{\n  \"deployment\": \"aidos-mvp\",\n  \"nodes\": [\n    {\n      \"id\": \"task-001\",\n      \"intent\": \"sync_netbox_intent\",\n      \"target\": \"aidos-mvp\",\n      \"preferred_executor\": \"api\",\n      \"fallback_executors\": [\n        \"cli\",\n        \"ansible\",\n        \"mcp\",\n        \"playwright\"\n      ],\n      \"preconditions\": [\n        \"sot_built\"\n      ],\n      \"approval_required\": false,\n      \"evidence_required\": \n\ncanonical_sot.json:\n{\n  \"project\": {\n    \"customer_name\": \"unknown-customer\",\n    \"project_name\": \"aidos-project\",\n    \"region\": null,\n    \"site_name\": null\n  },\n  \"intent\": {\n    \"deployment_name\": \"aidos-mvp\",\n    \"gpu_model\": \"H100\",\n    \"node_count\": 8,\n    \"target_platform\": \"Cisco AI Pod\",\n    \"required_vlans\": [\n      \"101\",\n      \"102\"\n    ]\n  },\n  \"site\": {\n    \"loading_dock\": true,\n    \"server_lift\": false,\n\nevidence_bundle.json:\n{\n  \"deployment\": \"aidos-mvp\",\n  \"evidence\": [\n    {\n      \"source\": \"intake.survey\",\n      \"raw_value\": {\n        \"loading_dock\": true,\n        \"server_lift\": false,\n        \"rack_floor_psf\": 150.0,\n        \"liquid_cooling\": false,\n        \"power_profile\": \"208V 30A 3-phase\",\n        \"available_circuits\": true,\n        \"uplinks\": \"2x10G\",\n        \"ports_40g\": true,\n        \"vlan_config_needed\": t"
+    },
+    {
+      "ts": "2026-06-05T15:19:10.410127+00:00",
+      "role": "user",
+      "message": "hello"
+    },
+    {
+      "ts": "2026-06-05T15:19:10.413029+00:00",
+      "role": "assistant",
+      "message": "Welcome. I'm NeMoSys, your operator console for intake, validation, planning, NetBox reconciliation, and execution tracking. Ask about the current project, upload intake files, or run the workflow to generate artifacts and traces."
+    },
+    {
+      "ts": "2026-06-05T15:19:30.774708+00:00",
+      "role": "user",
+      "message": "run project flow"
+    },
+    {
+      "ts": "2026-06-05T15:19:30.797223+00:00",
+      "role": "assistant",
+      "message": "Grounded matches from NeMoSys artifacts:\n\ncanonical_sot.json:\n{\n  \"project\": {\n    \"customer_name\": \"unknown-customer\",\n    \"project_name\": \"aidos-project\",\n    \"region\": null,\n    \"site_name\": null\n  },\n  \"intent\": {\n    \"deployment_name\": \"aidos-mvp\",\n    \"gpu_model\": \"H100\",\n    \"node_count\": 8,\n    \"target_platform\": \"Cisco AI Pod\",\n    \"required_vlans\": [\n      \"101\",\n      \"102\"\n    ]\n  },\n  \"site\": {\n    \"loading_dock\": true,\n    \"server_lift\": false,\n\nevidence_bundle.json:\n{\n  \"deployment\": \"aidos-mvp\",\n  \"evidence\": [\n    {\n      \"source\": \"intake.survey\",\n      \"raw_value\": {\n        \"loading_dock\": true,\n        \"server_lift\": false,\n        \"rack_floor_psf\": 150.0,\n        \"liquid_cooling\": false,\n        \"power_profile\": \"208V 30A 3-phase\",\n        \"available_circuits\": true,\n        \"uplinks\": \"2x10G\",\n        \"ports_40g\": true,\n        \"vlan_config_needed\": t\n\nnetbox_sync_payloads.json:\n{\n  \"payload\": {\n    \"sites\": [\n      {\n        \"name\": \"aidos-project\",\n        \"slug\": \"aidos-project\",\n        \"region\": null,\n        \"tags\": [\n          \"aidos\",\n          \"intent\"\n        ]\n      }\n    ],\n    \"racks\": [\n      {\n        \"name\": \"aidos-mvp-rack-a\",\n        \"site\": \"aidos-project\",\n        \"status\": \"planned\",\n        \"custom_fields\": {\n          \"required_slots\": 2\n        }\n "
+    }
+  ]
+}

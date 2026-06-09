@@ -1,0 +1,7 @@
+- name: AIDOS task task-001 - sync_netbox_intent
+  hosts: localhost
+  gather_facts: false
+  tasks:
+  - name: Execute sync_netbox_intent
+    debug:
+      msg: task_id=task-001 target=rag-serving-deployment preferred_executor=api approval_required=False

@@ -1,0 +1,4 @@
+- import_playbook: claim_device_policy.yml
+- import_playbook: network_connectivity_policy.yml
+- import_playbook: server_profile_template.yml
+- import_playbook: syslog_policy.yml
