@@ -367,7 +367,8 @@ def build_netbox_payload(sot: CanonicalSoT) -> NetBoxPayload:
     devices: list[dict[str, Any]] = []
     for idx in range(sot.intent.node_count):
         # Fill the rack from the bottom up in 2U increments for a visible elevation layout.
-        position = rack_height_u - (idx * device_u_height)
+        # Start at U40 to avoid top-of-rack placement conflicts seen on some NetBox tenants.
+        position = (rack_height_u - device_u_height) - (idx * device_u_height)
         devices.append(
             {
                 "name": f"{deployment}-node-{idx+1}",
