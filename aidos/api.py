@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import shutil
+import json
 from pathlib import Path
 from datetime import datetime, timezone
 
@@ -44,6 +45,56 @@ def _normalize_project_payload(project: dict) -> dict:
     normalized = dict(project)
     normalized["output_dir"] = _normalize_output_dir(str(normalized.get("output_dir", "")))
     return normalized
+
+
+def _read_json_file(path: Path) -> dict:
+    if not path.exists() or not path.is_file():
+        return {}
+    try:
+        payload = json.loads(path.read_text(encoding="utf-8"))
+    except Exception:
+        return {}
+    return payload if isinstance(payload, dict) else {}
+
+
+def _build_run_debug_summary(
+    *,
+    resolved_inputs: dict[str, str | None],
+    netbox_sync_payloads_json: Path,
+    validation_report_json: Path,
+) -> dict:
+    netbox_data = _read_json_file(netbox_sync_payloads_json)
+    validation_data = _read_json_file(validation_report_json)
+
+    payload = netbox_data.get("payload") if isinstance(netbox_data.get("payload"), dict) else {}
+    sync_result = netbox_data.get("sync_result") if isinstance(netbox_data.get("sync_result"), dict) else {}
+    reconciliation = sync_result.get("reconciliation") if isinstance(sync_result.get("reconciliation"), dict) else {}
+
+    return {
+        "resolved_inputs": resolved_inputs,
+        "readiness": validation_data.get("readiness"),
+        "netbox": {
+            "payload_counts": {
+                "sites": len(payload.get("sites", [])) if isinstance(payload.get("sites", []), list) else 0,
+                "racks": len(payload.get("racks", [])) if isinstance(payload.get("racks", []), list) else 0,
+                "devices": len(payload.get("devices", [])) if isinstance(payload.get("devices", []), list) else 0,
+                "vlans": len(payload.get("vlans", [])) if isinstance(payload.get("vlans", []), list) else 0,
+                "prefixes": len(payload.get("prefixes", [])) if isinstance(payload.get("prefixes", []), list) else 0,
+                "cables": len(payload.get("cables", [])) if isinstance(payload.get("cables", []), list) else 0,
+            },
+            "sync_status": sync_result.get("status"),
+            "base_url": sync_result.get("base_url"),
+            "reconciliation_counts": {
+                "sites": len(reconciliation.get("sites", [])) if isinstance(reconciliation.get("sites", []), list) else 0,
+                "racks": len(reconciliation.get("racks", [])) if isinstance(reconciliation.get("racks", []), list) else 0,
+                "devices": len(reconciliation.get("devices", [])) if isinstance(reconciliation.get("devices", []), list) else 0,
+                "vlans": len(reconciliation.get("vlans", [])) if isinstance(reconciliation.get("vlans", []), list) else 0,
+                "prefixes": len(reconciliation.get("prefixes", [])) if isinstance(reconciliation.get("prefixes", []), list) else 0,
+                "cables": len(reconciliation.get("cables", [])) if isinstance(reconciliation.get("cables", []), list) else 0,
+            },
+            "error_count": len(sync_result.get("errors", [])) if isinstance(sync_result.get("errors", []), list) else 0,
+        },
+    }
 
 
 @app.get("/")
@@ -495,6 +546,19 @@ def project_flow(project_id: str, payload: ProjectFlowRequest) -> dict:
             },
         ) from exc
 
+    run_debug = _build_run_debug_summary(
+        resolved_inputs={
+            "survey_path": survey_path,
+            "bom_path": bom_path,
+            "workload_path": workload_path,
+            "context_path": context_path,
+            "network_layout_path": network_layout_path,
+            "observed_path": payload.observed_path,
+        },
+        netbox_sync_payloads_json=artifacts.netbox_sync_payloads_json,
+        validation_report_json=artifacts.validation_report_json,
+    )
+
     return {
         "project_id": project_id,
         "canonical_sot_json": str(artifacts.canonical_sot_json),
@@ -508,6 +572,7 @@ def project_flow(project_id: str, payload: ProjectFlowRequest) -> dict:
         "evidence_bundle_json": str(artifacts.evidence_bundle_json),
         "observed_state_snapshot_json": str(artifacts.observed_state_snapshot_json),
         "post_execution_verification_report_json": str(artifacts.post_execution_verification_report_json),
+        "run_debug": run_debug,
     }
 
 
@@ -563,6 +628,19 @@ def flow(payload: FlowRequest) -> dict:
             },
         ) from exc
 
+    run_debug = _build_run_debug_summary(
+        resolved_inputs={
+            "survey_path": payload.survey_path,
+            "bom_path": payload.bom_path,
+            "workload_path": payload.workload_path,
+            "context_path": payload.context_path,
+            "network_layout_path": payload.network_layout_path,
+            "observed_path": payload.observed_path,
+        },
+        netbox_sync_payloads_json=artifacts.netbox_sync_payloads_json,
+        validation_report_json=artifacts.validation_report_json,
+    )
+
     return {
         "canonical_sot_json": str(artifacts.canonical_sot_json),
         "netbox_sync_payloads_json": str(artifacts.netbox_sync_payloads_json),
@@ -575,6 +653,7 @@ def flow(payload: FlowRequest) -> dict:
         "evidence_bundle_json": str(artifacts.evidence_bundle_json),
         "observed_state_snapshot_json": str(artifacts.observed_state_snapshot_json),
         "post_execution_verification_report_json": str(artifacts.post_execution_verification_report_json),
+        "run_debug": run_debug,
     }
 
 

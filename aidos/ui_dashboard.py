@@ -843,11 +843,25 @@ def render_operator_app_html() -> str:
                 setStage('execute', 'active');
                 addEvent(payload.execute ? 'Executing tasks with approval rules.' : 'Execution skipped for dry planning run.');
 
-                await fetchJson(`/v1/projects/${currentProject.id}/flow`, {
+                const flowResult = await fetchJson(`/v1/projects/${currentProject.id}/flow`, {
                     method: 'POST',
                     headers: {'Content-Type': 'application/json'},
                     body: JSON.stringify(payload),
                 });
+
+                const debug = flowResult?.run_debug || {};
+                const resolved = debug?.resolved_inputs || {};
+                const netbox = debug?.netbox || {};
+                const counts = netbox?.payload_counts || {};
+                const syncStatus = netbox?.sync_status || 'n/a';
+                const readiness = debug?.readiness || 'unknown';
+
+                addEvent(
+                    `Resolved inputs: survey=${resolved.survey_path || '-'} | bom=${resolved.bom_path || '-'} | workload=${resolved.workload_path || '-'} | context=${resolved.context_path || '-'} | network=${resolved.network_layout_path || '-'}`
+                );
+                addEvent(
+                    `NetBox payload counts: sites=${counts.sites || 0}, racks=${counts.racks || 0}, devices=${counts.devices || 0}, vlans=${counts.vlans || 0}, prefixes=${counts.prefixes || 0}, cables=${counts.cables || 0} | sync=${syncStatus} | readiness=${readiness}`
+                );
 
                 setStage('execute', 'done');
                 setStage('verify', 'active');
