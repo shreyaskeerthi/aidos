@@ -1,0 +1,26 @@
+[
+  {
+    "name": "python-version",
+    "command": "py -3 --version",
+    "exit_code": 0,
+    "status": "passed",
+    "matched_success": [
+      "Python 3"
+    ],
+    "matched_fail": [],
+    "stdout": "Python 3.12.10\n",
+    "stderr": ""
+  },
+  {
+    "name": "network-placeholder",
+    "command": "echo VLAN 1201 reachable",
+    "exit_code": 0,
+    "status": "passed",
+    "matched_success": [
+      "reachable"
+    ],
+    "matched_fail": [],
+    "stdout": "VLAN 1201 reachable\n",
+    "stderr": ""
+  }
+]

@@ -1,0 +1,85 @@
+{
+  "project": "Darla",
+  "subtitle": "Agentic customer readiness and execution cockpit",
+  "timestamp_utc": "2026-06-03T19:50:32+00:00",
+  "customer_ask": "Build a secure customer readiness RAG cockpit with citations and owner handoff.",
+  "objective": "Build a secure customer readiness RAG cockpit with citations and owner handoff.",
+  "readiness": {
+    "Business": 91,
+    "Data": 91,
+    "Security": 69,
+    "Infrastructure": 69,
+    "Ownership": 91,
+    "Timeline": 44
+  },
+  "blockers": [
+    {
+      "category": "Security",
+      "severity": "medium",
+      "message": "Security readiness is 69/100. Darla needs stronger proof before this can be presented as deployment-ready."
+    },
+    {
+      "category": "Infrastructure",
+      "severity": "medium",
+      "message": "Infrastructure readiness is 69/100. Darla needs stronger proof before this can be presented as deployment-ready."
+    },
+    {
+      "category": "Timeline",
+      "severity": "high",
+      "message": "Timeline readiness is 44/100. Darla needs stronger proof before this can be presented as deployment-ready."
+    }
+  ],
+  "evidence": [
+    {
+      "source": "shi_customer_readiness.md",
+      "score": 5,
+      "snippets": [
+        "# SHI Customer Readiness Signals\n\nSHI opportunity reviews are strongest when the team can point to a defined use case, an executive sponsor, named delivery ownership, and a measurable business KPI for the first pilot.",
+        "Customer readiness improves when the engagement includes an agreed timeline, success criteria, and a clear path from discovery to proof of concept."
+      ]
+    },
+    {
+      "source": "security_controls.md",
+      "score": 4,
+      "snippets": [
+        "# Secure Ground Truth Controls\n\nAnswers should be grounded in approved internal documents and should return citations for every material claim.",
+        "Internet access should remain disabled for sensitive customer workflows unless explicitly approved by policy."
+      ]
+    },
+    {
+      "source": "nvidia_stack_alignment.md",
+      "score": 2,
+      "snippets": [
+        "# NVIDIA Stack Alignment\n\nNVIDIA RAG Blueprint deployments typically align around document ingestion, retrieval, reranking, and grounded answer generation.",
+        "Agentic workflows can improve the demo story by breaking a vague request into readiness checks, evidence collection, and next-step outputs instead of returning a single chatbot answer."
+      ]
+    }
+  ],
+  "next_actions": [
+    "Build a two-week POC plan with milestones, blockers, and exit criteria.",
+    "Set a review checkpoint for readiness after the first ingestion run.",
+    "Complete a security review before scaling ingestion beyond the pilot corpus.",
+    "Lock approved sources and require evidence-backed answers in every demo flow.",
+    "Choose the deployment target and reserve GPU capacity for the demo environment.",
+    "Document model endpoints, vector store settings, and deployment dependencies."
+  ],
+  "confidence": 91,
+  "policies": {
+    "allowed_sources": [
+      "groundtruth/data"
+    ],
+    "internet_access": false,
+    "require_citations": true,
+    "minimum_evidence_matches": 1
+  },
+  "backend_mode": "practice",
+  "backend_model": "darla-practice-deterministic",
+  "answer": "Darla practice-mode response (deterministic):\nObjective: Build a secure customer readiness RAG cockpit with citations and owner handoff.\nReadiness summary: Business=91, Data=91, Security=69, Infrastructure=69, Ownership=91, Timeline=44\nBlockers: Security (medium), Infrastructure (medium), Timeline (high)\nGround-truth evidence:\n- [shi_customer_readiness.md] # SHI Customer Readiness Signals\n\nSHI opportunity reviews are strongest when the team can point to a defined use case, an executive sponsor, named delivery ownership, and a measurable business KPI for the first pilot.\n- [security_controls.md] # Secure Ground Truth Controls\n\nAnswers should be grounded in approved internal documents and should return citations for every material claim.\n- [nvidia_stack_alignment.md] # NVIDIA Stack Alignment\n\nNVIDIA RAG Blueprint deployments typically align around document ingestion, retrieval, reranking, and grounded answer generation.\nRecommended next actions:\n- Build a two-week POC plan with milestones, blockers, and exit criteria.\n- Set a review checkpoint for readiness after the first ingestion run.\n- Complete a security review before scaling ingestion beyond the pilot corpus.",
+  "citations": [
+    "shi_customer_readiness.md",
+    "security_controls.md",
+    "nvidia_stack_alignment.md"
+  ],
+  "verified": true,
+  "average_readiness": 75
+}

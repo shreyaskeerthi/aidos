@@ -1,0 +1,71 @@
+{
+  "project": "Darla",
+  "subtitle": "Agentic customer readiness and execution cockpit",
+  "timestamp_utc": "2026-06-03T19:50:49+00:00",
+  "customer_ask": "Need an on-prem AI pilot with governance and citations.",
+  "objective": "Need an on-prem AI pilot with governance and citations.",
+  "readiness": {
+    "Business": 44,
+    "Data": 80,
+    "Security": 55,
+    "Infrastructure": 91,
+    "Ownership": 69,
+    "Timeline": 44
+  },
+  "blockers": [
+    {
+      "category": "Business",
+      "severity": "high",
+      "message": "Business readiness is 44/100. Darla needs stronger proof before this can be presented as deployment-ready."
+    },
+    {
+      "category": "Security",
+      "severity": "high",
+      "message": "Security readiness is 55/100. Darla needs stronger proof before this can be presented as deployment-ready."
+    },
+    {
+      "category": "Ownership",
+      "severity": "medium",
+      "message": "Ownership readiness is 69/100. Darla needs stronger proof before this can be presented as deployment-ready."
+    },
+    {
+      "category": "Timeline",
+      "severity": "high",
+      "message": "Timeline readiness is 44/100. Darla needs stronger proof before this can be presented as deployment-ready."
+    }
+  ],
+  "evidence": [
+    {
+      "source": "nvidia_stack_alignment.md",
+      "score": 2,
+      "snippets": [
+        "For enterprise pilots, teams often need on-prem or hybrid deployment options, GPU planning, model endpoint configuration, and a documented vector database strategy."
+      ]
+    }
+  ],
+  "next_actions": [
+    "Confirm executive sponsor and measurable pilot KPI.",
+    "Frame the first release around one customer workflow with business impact.",
+    "Build a two-week POC plan with milestones, blockers, and exit criteria.",
+    "Set a review checkpoint for readiness after the first ingestion run.",
+    "Complete a security review before scaling ingestion beyond the pilot corpus.",
+    "Lock approved sources and require evidence-backed answers in every demo flow."
+  ],
+  "confidence": 71,
+  "policies": {
+    "allowed_sources": [
+      "groundtruth/data"
+    ],
+    "internet_access": false,
+    "require_citations": true,
+    "minimum_evidence_matches": 1
+  },
+  "backend_mode": "practice",
+  "backend_model": "darla-practice-deterministic",
+  "answer": "Darla practice-mode response (deterministic):\nObjective: Need an on-prem AI pilot with governance and citations.\nReadiness summary: Business=44, Data=80, Security=55, Infrastructure=91, Ownership=69, Timeline=44\nBlockers: Business (high), Security (high), Ownership (medium), Timeline (high)\nGround-truth evidence:\n- [nvidia_stack_alignment.md] For enterprise pilots, teams often need on-prem or hybrid deployment options, GPU planning, model endpoint configuration, and a documented vector database strategy.\nRecommended next actions:\n- Confirm executive sponsor and measurable pilot KPI.\n- Frame the first release around one customer workflow with business impact.\n- Build a two-week POC plan with milestones, blockers, and exit criteria.",
+  "citations": [
+    "nvidia_stack_alignment.md"
+  ],
+  "verified": true,
+  "average_readiness": 63
+}

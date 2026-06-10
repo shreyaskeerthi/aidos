@@ -1,0 +1,76 @@
+{
+  "critical": [
+    {
+      "severity": "critical",
+      "code": "PHYS_NO_LIFT",
+      "message": "Server lift is unavailable for a dense node deployment.",
+      "recommendation": "Arrange a rated server lift before installation window."
+    }
+  ],
+  "warning": [
+    {
+      "severity": "warning",
+      "code": "THERMAL_AIR_ONLY",
+      "message": "H100 deployment with air-only cooling may breach thermal envelope.",
+      "recommendation": "Confirm thermal model or reduce rack density before cutover."
+    },
+    {
+      "severity": "warning",
+      "code": "NET_DIAGRAM_MISSING",
+      "message": "No data center network diagram is attached.",
+      "recommendation": "Provide a network diagram with VLAN and uplink paths."
+    },
+    {
+      "severity": "warning",
+      "code": "LAYOUT_MISSING",
+      "message": "No rack layout blueprint is attached.",
+      "recommendation": "Add rack and cable layout blueprint for install sequence."
+    }
+  ],
+  "passed": [
+    {
+      "severity": "passed",
+      "code": "PHYS_DOCK_OK",
+      "message": "Loading dock is available.",
+      "recommendation": ""
+    },
+    {
+      "severity": "passed",
+      "code": "POWER_CIRCUITS_OK",
+      "message": "Dedicated circuits are available.",
+      "recommendation": ""
+    },
+    {
+      "severity": "passed",
+      "code": "POWER_PROFILE_OK",
+      "message": "Power profile includes 208V 30A capability.",
+      "recommendation": ""
+    },
+    {
+      "severity": "passed",
+      "code": "RACK_LOAD_OK",
+      "message": "Rack floor load rating is at or above 150 psf.",
+      "recommendation": ""
+    },
+    {
+      "severity": "passed",
+      "code": "UPLINK_PRESENT",
+      "message": "10G uplink capability detected.",
+      "recommendation": ""
+    },
+    {
+      "severity": "passed",
+      "code": "PORT_40G_PRESENT",
+      "message": "40G port availability detected.",
+      "recommendation": ""
+    }
+  ],
+  "deployment_plan": [
+    "Phase 1: Physical setup for H100 deployment and rack placement validation.",
+    "Phase 2: Power validation (PDU redundancy and circuit isolation).",
+    "Phase 3: Network setup (VLANs, uplinks, and switch/FI alignment).",
+    "Phase 4: Platform configuration (fabric policies, cluster bootstrap settings).",
+    "Phase 5: Post-deployment validation (GPU detection, VLAN reachability, cluster readiness)."
+  ],
+  "summary": "Critical: 1, Warning: 3, Passed: 6"
+}

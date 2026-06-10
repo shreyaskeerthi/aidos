@@ -1,0 +1,70 @@
+{
+  "project": "Darla",
+  "subtitle": "Agentic customer readiness and execution cockpit",
+  "timestamp_utc": "2026-06-03T19:37:07+00:00",
+  "customer_ask": "We need a secure on-prem enterprise RAG assistant for support engineers with citations, named owners, and a one quarter pilot timeline.",
+  "objective": "We need a secure on-prem enterprise RAG assistant for support engineers with citations, named owners, and a one quarter pilot timeline.",
+  "readiness": {
+    "Business": 91,
+    "Data": 91,
+    "Security": 44,
+    "Infrastructure": 91,
+    "Ownership": 91,
+    "Timeline": 55
+  },
+  "blockers": [
+    {
+      "category": "Security",
+      "severity": "high",
+      "message": "Security readiness is 44/100. Darla needs stronger proof before this can be presented as deployment-ready."
+    },
+    {
+      "category": "Timeline",
+      "severity": "high",
+      "message": "Timeline readiness is 55/100. Darla needs stronger proof before this can be presented as deployment-ready."
+    }
+  ],
+  "evidence": [
+    {
+      "source": "nvidia_stack_alignment.md",
+      "score": 4,
+      "snippets": [
+        "For enterprise pilots, teams often need on-prem or hybrid deployment options, GPU planning, model endpoint configuration, and a documented vector database strategy.",
+        "# NVIDIA Stack Alignment\n\nNVIDIA RAG Blueprint deployments typically align around document ingestion, retrieval, reranking, and grounded answer generation."
+      ]
+    },
+    {
+      "source": "shi_customer_readiness.md",
+      "score": 3,
+      "snippets": [
+        "# SHI Customer Readiness Signals\n\nSHI opportunity reviews are strongest when the team can point to a defined use case, an executive sponsor, named delivery ownership, and a measurable business KPI for the first pilot.",
+        "Customer readiness improves when the engagement includes an agreed timeline, success criteria, and a clear path from discovery to proof of concept."
+      ]
+    },
+    {
+      "source": "security_controls.md",
+      "score": 2,
+      "snippets": [
+        "# Secure Ground Truth Controls\n\nAnswers should be grounded in approved internal documents and should return citations for every material claim."
+      ]
+    }
+  ],
+  "next_actions": [
+    "Complete a security review before scaling ingestion beyond the pilot corpus.",
+    "Lock approved sources and require evidence-backed answers in every demo flow.",
+    "Build a two-week POC plan with milestones, blockers, and exit criteria.",
+    "Set a review checkpoint for readiness after the first ingestion run.",
+    "Confirm executive sponsor and measurable pilot KPI.",
+    "Frame the first release around one customer workflow with business impact."
+  ],
+  "confidence": 93,
+  "policies": {
+    "allowed_sources": [
+      "groundtruth/data"
+    ],
+    "internet_access": false,
+    "require_citations": true,
+    "minimum_evidence_matches": 1
+  },
+  "average_readiness": 77
+}

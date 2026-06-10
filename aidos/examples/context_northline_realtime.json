@@ -1,0 +1,38 @@
+{
+  "customer_name": "Northline Logistics",
+  "project_name": "northline-realtime-ai-core",
+  "region": "us-west",
+  "site_name": "northline-rt-dc1",
+  "environment": "production",
+  "business_service": "real-time-routing-ai",
+  "target_sla": "99.95%",
+  "availability_zone_strategy": "single-site dual-fabric with DR standby",
+  "security_requirements": [
+    "zero-trust-east-west-segmentation",
+    "signed-firmware-only",
+    "mfa-admin-access",
+    "full-audit-retention-365d"
+  ],
+  "network_architecture": {
+    "fabric": "leaf-spine",
+    "leaf_count": 2,
+    "spine_count": 2,
+    "uplink_profile": "8x100G",
+    "management_vlan": 4199,
+    "storage_vlan": 4103,
+    "service_vlans": [4101, 4102]
+  },
+  "compute_architecture": {
+    "cluster_role": "training-and-inference",
+    "rack_layout": "single-rack phase-1",
+    "node_profile": "8x H100 SXM nodes",
+    "orchestrator": "kubernetes",
+    "container_runtime": "containerd"
+  },
+  "operations": {
+    "change_window": "sunday-03:00-utc",
+    "rollback_strategy": "policy revert + staged drain",
+    "monitoring": ["prometheus", "grafana", "loki"],
+    "incident_severity_escalation": "sev1-15min"
+  }
+}

@@ -1,0 +1,519 @@
+{
+  "project": "Darla",
+  "subtitle": "Agentic customer readiness and execution cockpit",
+  "timestamp_utc": "2026-06-04T14:40:18+00:00",
+  "customer_ask": "Build a secure customer readiness RAG cockpit with citations and owner handoff.",
+  "objective": "Build a secure customer readiness RAG cockpit with citations and owner handoff.",
+  "readiness": {
+    "Business": 91,
+    "Data": 91,
+    "Security": 69,
+    "Infrastructure": 69,
+    "Ownership": 91,
+    "Timeline": 44
+  },
+  "blockers": [
+    {
+      "category": "Security",
+      "severity": "medium",
+      "message": "Security readiness is 69/100. Darla needs stronger proof before this can be presented as deployment-ready."
+    },
+    {
+      "category": "Infrastructure",
+      "severity": "medium",
+      "message": "Infrastructure readiness is 69/100. Darla needs stronger proof before this can be presented as deployment-ready."
+    },
+    {
+      "category": "Timeline",
+      "severity": "high",
+      "message": "Timeline readiness is 44/100. Darla needs stronger proof before this can be presented as deployment-ready."
+    }
+  ],
+  "evidence": [
+    {
+      "source": "shi_customer_readiness.md",
+      "score": 5,
+      "snippets": [
+        "# SHI Customer Readiness Signals\n\nSHI opportunity reviews are strongest when the team can point to a defined use case, an executive sponsor, named delivery ownership, and a measurable business KPI for the first pilot.",
+        "Customer readiness improves when the engagement includes an agreed timeline, success criteria, and a clear path from discovery to proof of concept."
+      ]
+    },
+    {
+      "source": "security_controls.md",
+      "score": 4,
+      "snippets": [
+        "# Secure Ground Truth Controls\n\nAnswers should be grounded in approved internal documents and should return citations for every material claim.",
+        "Internet access should remain disabled for sensitive customer workflows unless explicitly approved by policy."
+      ]
+    },
+    {
+      "source": "nvidia_stack_alignment.md",
+      "score": 2,
+      "snippets": [
+        "# NVIDIA Stack Alignment\n\nNVIDIA RAG Blueprint deployments typically align around document ingestion, retrieval, reranking, and grounded answer generation.",
+        "Agentic workflows can improve the demo story by breaking a vague request into readiness checks, evidence collection, and next-step outputs instead of returning a single chatbot answer."
+      ]
+    }
+  ],
+  "next_actions": [
+    "Build a two-week POC plan with milestones, blockers, and exit criteria.",
+    "Set a review checkpoint for readiness after the first ingestion run.",
+    "Complete a security review before scaling ingestion beyond the pilot corpus.",
+    "Lock approved sources and require evidence-backed answers in every demo flow.",
+    "Choose the deployment target and reserve GPU capacity for the demo environment.",
+    "Document model endpoints, vector store settings, and deployment dependencies."
+  ],
+  "confidence": 87,
+  "policies": {
+    "allowed_sources": [
+      "groundtruth/data"
+    ],
+    "internet_access": false,
+    "require_citations": true,
+    "minimum_evidence_matches": 1
+  },
+  "backend_mode": "practice",
+  "backend_model": "darla-practice-deterministic",
+  "answer": "Darla practice-mode response (deterministic):\nObjective: Build a secure customer readiness RAG cockpit with citations and owner handoff.\nReadiness summary: Business=91, Data=91, Security=69, Infrastructure=69, Ownership=91, Timeline=44\nBlockers: Security (medium), Infrastructure (medium), Timeline (high)\nLowest readiness categories: Timeline=44, Security=69\nGround-truth evidence:\n- [shi_customer_readiness.md] # SHI Customer Readiness Signals\n\nSHI opportunity reviews are strongest when the team can point to a defined use case, an executive sponsor, named delivery ownership, and a measurable business KPI for the first pilot.\n- [security_controls.md] # Secure Ground Truth Controls\n\nAnswers should be grounded in approved internal documents and should return citations for every material claim.\n- [nvidia_stack_alignment.md] # NVIDIA Stack Alignment\n\nNVIDIA RAG Blueprint deployments typically align around document ingestion, retrieval, reranking, and grounded answer generation.\nTop sources:\n- shi_customer_readiness.md (score=5, snippets=2)\n- security_controls.md (score=4, snippets=2)\nRecommended next actions:\n- Build a two-week POC plan with milestones, blockers, and exit criteria.\n- Set a review checkpoint for readiness after the first ingestion run.\n- Complete a security review before scaling ingestion beyond the pilot corpus.",
+  "citations": [
+    "shi_customer_readiness.md",
+    "security_controls.md",
+    "nvidia_stack_alignment.md"
+  ],
+  "verified": true,
+  "source_attribution": [
+    {
+      "source": "shi_customer_readiness.md",
+      "score": 5,
+      "snippet_count": 2,
+      "top_snippet": "# SHI Customer Readiness Signals\n\nSHI opportunity reviews are strongest when the team can point to a defined use case, an executive sponsor, named delivery ownership, and a measurable business KPI for the first pilot."
+    },
+    {
+      "source": "security_controls.md",
+      "score": 4,
+      "snippet_count": 2,
+      "top_snippet": "# Secure Ground Truth Controls\n\nAnswers should be grounded in approved internal documents and should return citations for every material claim."
+    },
+    {
+      "source": "nvidia_stack_alignment.md",
+      "score": 2,
+      "snippet_count": 2,
+      "top_snippet": "# NVIDIA Stack Alignment\n\nNVIDIA RAG Blueprint deployments typically align around document ingestion, retrieval, reranking, and grounded answer generation."
+    }
+  ],
+  "confidence_breakdown": {
+    "average_readiness": 75,
+    "total_evidence_score": 11,
+    "evidence_strength_bonus": 5,
+    "blocker_penalty": 9,
+    "confidence_adjustment": -4
+  },
+  "ui_sections": {
+    "overview": {
+      "gauge": {
+        "value": 75,
+        "label": "MODERATE READINESS",
+        "color": "yellow"
+      },
+      "confidence": 87,
+      "backend_mode": "practice",
+      "readiness": {
+        "Business": 91,
+        "Data": 91,
+        "Security": 69,
+        "Infrastructure": 69,
+        "Ownership": 91,
+        "Timeline": 44
+      },
+      "blockers": [
+        {
+          "category": "Security",
+          "severity": "medium",
+          "message": "Security readiness is 69/100. Darla needs stronger proof before this can be presented as deployment-ready."
+        },
+        {
+          "category": "Infrastructure",
+          "severity": "medium",
+          "message": "Infrastructure readiness is 69/100. Darla needs stronger proof before this can be presented as deployment-ready."
+        },
+        {
+          "category": "Timeline",
+          "severity": "high",
+          "message": "Timeline readiness is 44/100. Darla needs stronger proof before this can be presented as deployment-ready."
+        }
+      ],
+      "recommendations": [
+        "Build a two-week POC plan with milestones, blockers, and exit criteria.",
+        "Set a review checkpoint for readiness after the first ingestion run.",
+        "Complete a security review before scaling ingestion beyond the pilot corpus.",
+        "Lock approved sources and require evidence-backed answers in every demo flow."
+      ],
+      "quick_evidence": [
+        "shi_customer_readiness.md",
+        "security_controls.md",
+        "nvidia_stack_alignment.md"
+      ]
+    },
+    "stakeholders": {
+      "stakeholders": {
+        "Executive Sponsor": {
+          "status": "red",
+          "note": "Missing"
+        },
+        "Technical Owner": {
+          "status": "red",
+          "note": "Missing"
+        },
+        "Security Owner": {
+          "status": "yellow",
+          "note": "Partial"
+        },
+        "Delivery Lead": {
+          "status": "red",
+          "note": "Missing"
+        }
+      },
+      "missing_roles": [
+        "Executive Sponsor",
+        "Technical Owner",
+        "Delivery Lead"
+      ],
+      "risk_callout": "No executive sponsor -> high failure risk"
+    },
+    "timeline": {
+      "phases": [
+        {
+          "phase": "Discovery",
+          "status": "green",
+          "confidence": "High",
+          "score": 91
+        },
+        {
+          "phase": "Data Ingestion",
+          "status": "green",
+          "confidence": "High",
+          "score": 91
+        },
+        {
+          "phase": "Security Validation",
+          "status": "yellow",
+          "confidence": "Medium",
+          "score": 69
+        },
+        {
+          "phase": "POC Execution (2 weeks)",
+          "status": "yellow",
+          "confidence": "Medium",
+          "score": 68
+        }
+      ],
+      "missing_proof": [
+        "Security Validation",
+        "POC Execution (2 weeks)"
+      ]
+    },
+    "documents": {
+      "documents": [
+        {
+          "source": "shi_customer_readiness.md",
+          "score": 5,
+          "top_snippet": "# SHI Customer Readiness Signals\n\nSHI opportunity reviews are strongest when the team can point to a defined use case, an executive sponsor, named delivery ownership, and a measurable business KPI for the first pilot.",
+          "impacted_categories": [
+            "Business",
+            "Ownership"
+          ]
+        },
+        {
+          "source": "security_controls.md",
+          "score": 4,
+          "top_snippet": "# Secure Ground Truth Controls\n\nAnswers should be grounded in approved internal documents and should return citations for every material claim.",
+          "impacted_categories": [
+            "Data",
+            "Security"
+          ]
+        },
+        {
+          "source": "nvidia_stack_alignment.md",
+          "score": 2,
+          "top_snippet": "# NVIDIA Stack Alignment\n\nNVIDIA RAG Blueprint deployments typically align around document ingestion, retrieval, reranking, and grounded answer generation.",
+          "impacted_categories": [
+            "Data",
+            "Infrastructure"
+          ]
+        }
+      ]
+    },
+    "thinking": {
+      "decomposition": [
+        "Extract objective and constraints",
+        "Evaluate readiness categories",
+        "Retrieve and rank evidence",
+        "Assess risk and blockers",
+        "Generate prioritized next actions"
+      ],
+      "decisions": [
+        "Timeline is a priority risk at 44/100",
+        "Security is a priority risk at 69/100",
+        "Infrastructure is a priority risk at 69/100"
+      ],
+      "priorities": [
+        "Build a two-week POC plan with milestones, blockers, and exit criteria.",
+        "Set a review checkpoint for readiness after the first ingestion run.",
+        "Complete a security review before scaling ingestion beyond the pilot corpus."
+      ],
+      "justification": [
+        "Security flagged as medium risk",
+        "Infrastructure flagged as medium risk",
+        "Timeline flagged as high risk"
+      ],
+      "category_feedback": [
+        {
+          "category": "Business",
+          "score": 91,
+          "status": "green",
+          "confidence": "High",
+          "trend": "up",
+          "reasons": [
+            "Keyword signals: sponsor, kpi, use case",
+            "Evidence support found in 1 source(s)"
+          ]
+        },
+        {
+          "category": "Data",
+          "score": 91,
+          "status": "green",
+          "confidence": "High",
+          "trend": "up",
+          "reasons": [
+            "Keyword signals: documents, citations, retrieval",
+            "Evidence support found in 2 source(s)"
+          ]
+        },
+        {
+          "category": "Security",
+          "score": 69,
+          "status": "yellow",
+          "confidence": "Medium",
+          "trend": "flat",
+          "reasons": [
+            "Keyword signals: policy",
+            "Evidence support found in 1 source(s)"
+          ]
+        },
+        {
+          "category": "Infrastructure",
+          "score": 69,
+          "status": "yellow",
+          "confidence": "Medium",
+          "trend": "flat",
+          "reasons": [
+            "Keyword signals: deployment",
+            "Evidence support found in 1 source(s)"
+          ]
+        },
+        {
+          "category": "Ownership",
+          "score": 91,
+          "status": "green",
+          "confidence": "High",
+          "trend": "up",
+          "reasons": [
+            "Keyword signals: owner, delivery, sponsor",
+            "Evidence support found in 1 source(s)"
+          ]
+        },
+        {
+          "category": "Timeline",
+          "score": 44,
+          "status": "red",
+          "confidence": "Low",
+          "trend": "down",
+          "reasons": [
+            "No direct keyword signal detected in ask or matched snippets",
+            "No supporting evidence snippet mapped to this category",
+            "Below deployment confidence threshold"
+          ]
+        }
+      ],
+      "agent_mapping": {
+        "Intake Agent": "Extract objective and constraints",
+        "Readiness Agent": "Evaluate readiness categories",
+        "Evidence Agent": "Retrieve and rank evidence",
+        "Risk Agent": "Assess risk and blockers",
+        "Output Composer": "Generate prioritized next actions"
+      },
+      "ask_excerpt": "Build a secure customer readiness RAG cockpit with citations and owner handoff."
+    },
+    "agent_flow": {
+      "steps": [
+        {
+          "name": "Intake Agent",
+          "status": "done",
+          "duration_ms": 16,
+          "persona": "Program discovery lead",
+          "background": "Customer discovery and scope framing",
+          "summary": "Normalize the customer ask into a structured prompt and capture the intent signal.",
+          "did": "Extract objective and constraints",
+          "concluded": "Objective is normalized and ready for category scoring",
+          "why": [
+            "Build a secure customer readiness RAG cockpit with citations and owner handoff.",
+            "Structured ask is required before scoring and retrieval"
+          ],
+          "inputs": [
+            "raw ask text"
+          ],
+          "outputs": [
+            "normalized intent",
+            "key terms"
+          ],
+          "transcript": [
+            {
+              "speaker": "Intake Agent",
+              "message": "I converted the ask into explicit outcomes, constraints, and success criteria."
+            },
+            {
+              "speaker": "Intake Agent",
+              "message": "Handing off normalized intent to Readiness Agent for scoring."
+            }
+          ]
+        },
+        {
+          "name": "Readiness Agent",
+          "status": "done",
+          "duration_ms": 28,
+          "persona": "Delivery architect",
+          "background": "Implementation readiness assessment",
+          "summary": "Score each readiness category and identify where the project is blocked.",
+          "did": "Evaluate readiness categories",
+          "concluded": "Timeline is a priority risk at 44/100",
+          "why": [
+            "Security flagged as medium risk",
+            "Infrastructure flagged as medium risk"
+          ],
+          "inputs": [
+            "intake payload",
+            "evidence matches"
+          ],
+          "outputs": [
+            "readiness scores",
+            "blocker list"
+          ],
+          "transcript": [
+            {
+              "speaker": "Readiness Agent",
+              "message": "Computed category-level readiness and highlighted weak signals."
+            },
+            {
+              "speaker": "Readiness Agent",
+              "message": "Escalating low-confidence categories to Risk Agent."
+            }
+          ]
+        },
+        {
+          "name": "Risk Agent",
+          "status": "done",
+          "duration_ms": 12,
+          "persona": "Risk and compliance analyst",
+          "background": "Operational and governance risk triage",
+          "summary": "Translate low scores into concrete risk language the team can act on.",
+          "did": "Assess risk and blockers",
+          "concluded": "Security is a priority risk at 69/100",
+          "why": [
+            "Security flagged as medium risk",
+            "Infrastructure flagged as medium risk",
+            "Timeline flagged as high risk"
+          ],
+          "inputs": [
+            "readiness scores"
+          ],
+          "outputs": [
+            "risk summary",
+            "escalation notes"
+          ],
+          "transcript": [
+            {
+              "speaker": "Risk Agent",
+              "message": "Mapped low-readiness areas to concrete delivery and governance risks."
+            },
+            {
+              "speaker": "Risk Agent",
+              "message": "Passing prioritized blocker list to Evidence Agent for source grounding."
+            }
+          ]
+        },
+        {
+          "name": "Evidence Agent",
+          "status": "done",
+          "duration_ms": 31,
+          "persona": "Retrieval specialist",
+          "background": "Evidence grounding and citation quality",
+          "summary": "Attach supporting evidence and highlight the most relevant source snippets.",
+          "did": "Retrieve and rank evidence",
+          "concluded": "Top sources have been mapped to impacted categories",
+          "why": [
+            "Grounded outputs require source attribution",
+            "Evidence ranking improves prioritization quality"
+          ],
+          "inputs": [
+            "retrieved evidence"
+          ],
+          "outputs": [
+            "source map",
+            "document digest"
+          ],
+          "transcript": [
+            {
+              "speaker": "Evidence Agent",
+              "message": "Aligned each blocker and recommendation with top supporting sources."
+            },
+            {
+              "speaker": "Evidence Agent",
+              "message": "Forwarding citation map and snippets to Output Composer."
+            }
+          ]
+        },
+        {
+          "name": "Output Composer",
+          "status": "done",
+          "duration_ms": 24,
+          "persona": "Executive brief writer",
+          "background": "Decision support synthesis",
+          "summary": "Assemble the final command-center view and exportable artifacts.",
+          "did": "Generate prioritized next actions",
+          "concluded": "Build a two-week POC plan with milestones, blockers, and exit criteria.",
+          "why": [
+            "Top priorities are selected from weakest categories first",
+            "Exports package the same reasoning for different audiences"
+          ],
+          "inputs": [
+            "readiness",
+            "risk",
+            "evidence"
+          ],
+          "outputs": [
+            "dashboard sections",
+            "exports"
+          ],
+          "transcript": [
+            {
+              "speaker": "Output Composer",
+              "message": "Merged readiness, risk, and evidence into stakeholder-friendly outputs."
+            },
+            {
+              "speaker": "Output Composer",
+              "message": "Publishing dashboard sections and export artifacts."
+            }
+          ]
+        }
+      ]
+    },
+    "actions": {
+      "items": [
+        "Generate Executive Brief",
+        "Generate Engineering Checklist",
+        "Export POC Plan"
+      ]
+    }
+  },
+  "average_readiness": 75
+}

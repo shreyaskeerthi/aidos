@@ -1,0 +1,107 @@
+{
+  "project": "Darla",
+  "subtitle": "Agentic customer readiness and execution cockpit",
+  "timestamp_utc": "2026-06-03T20:00:14+00:00",
+  "customer_ask": "Need a web-ready grounded dashboard demo for customer security and readiness updates",
+  "objective": "Need a web-ready grounded dashboard demo for customer security and readiness updates",
+  "readiness": {
+    "Business": 91,
+    "Data": 91,
+    "Security": 91,
+    "Infrastructure": 69,
+    "Ownership": 91,
+    "Timeline": 44
+  },
+  "blockers": [
+    {
+      "category": "Infrastructure",
+      "severity": "medium",
+      "message": "Infrastructure readiness is 69/100. Darla needs stronger proof before this can be presented as deployment-ready."
+    },
+    {
+      "category": "Timeline",
+      "severity": "high",
+      "message": "Timeline readiness is 44/100. Darla needs stronger proof before this can be presented as deployment-ready."
+    }
+  ],
+  "evidence": [
+    {
+      "source": "nvidia_stack_alignment.md",
+      "score": 4,
+      "snippets": [
+        "Agentic workflows can improve the demo story by breaking a vague request into readiness checks, evidence collection, and next-step outputs instead of returning a single chatbot answer.",
+        "# NVIDIA Stack Alignment\n\nNVIDIA RAG Blueprint deployments typically align around document ingestion, retrieval, reranking, and grounded answer generation."
+      ]
+    },
+    {
+      "source": "security_controls.md",
+      "score": 4,
+      "snippets": [
+        "Security review should happen before broad ingestion, especially when customer data may include private documents, compliance constraints, or policy-sensitive content.",
+        "# Secure Ground Truth Controls\n\nAnswers should be grounded in approved internal documents and should return citations for every material claim."
+      ]
+    },
+    {
+      "source": "shi_customer_readiness.md",
+      "score": 4,
+      "snippets": [
+        "# SHI Customer Readiness Signals\n\nSHI opportunity reviews are strongest when the team can point to a defined use case, an executive sponsor, named delivery ownership, and a measurable business KPI for the first pilot.",
+        "Customer readiness improves when the engagement includes an agreed timeline, success criteria, and a clear path from discovery to proof of concept."
+      ]
+    }
+  ],
+  "next_actions": [
+    "Build a two-week POC plan with milestones, blockers, and exit criteria.",
+    "Set a review checkpoint for readiness after the first ingestion run.",
+    "Choose the deployment target and reserve GPU capacity for the demo environment.",
+    "Document model endpoints, vector store settings, and deployment dependencies.",
+    "Confirm executive sponsor and measurable pilot KPI.",
+    "Frame the first release around one customer workflow with business impact."
+  ],
+  "confidence": 95,
+  "policies": {
+    "allowed_sources": [
+      "groundtruth/data"
+    ],
+    "internet_access": false,
+    "require_citations": true,
+    "minimum_evidence_matches": 1
+  },
+  "backend_mode": "practice",
+  "backend_model": "darla-practice-deterministic",
+  "answer": "Darla practice-mode response (deterministic):\nObjective: Need a web-ready grounded dashboard demo for customer security and readiness updates\nReadiness summary: Business=91, Data=91, Security=91, Infrastructure=69, Ownership=91, Timeline=44\nBlockers: Infrastructure (medium), Timeline (high)\nLowest readiness categories: Timeline=44, Infrastructure=69\nGround-truth evidence:\n- [nvidia_stack_alignment.md] Agentic workflows can improve the demo story by breaking a vague request into readiness checks, evidence collection, and next-step outputs instead of returning a single chatbot answer.\n- [security_controls.md] Security review should happen before broad ingestion, especially when customer data may include private documents, compliance constraints, or policy-sensitive content.\n- [shi_customer_readiness.md] # SHI Customer Readiness Signals\n\nSHI opportunity reviews are strongest when the team can point to a defined use case, an executive sponsor, named delivery ownership, and a measurable business KPI for the first pilot.\nTop sources:\n- nvidia_stack_alignment.md (score=4, snippets=2)\n- security_controls.md (score=4, snippets=2)\nRecommended next actions:\n- Build a two-week POC plan with milestones, blockers, and exit criteria.\n- Set a review checkpoint for readiness after the first ingestion run.\n- Choose the deployment target and reserve GPU capacity for the demo environment.",
+  "citations": [
+    "nvidia_stack_alignment.md",
+    "security_controls.md",
+    "shi_customer_readiness.md"
+  ],
+  "verified": true,
+  "source_attribution": [
+    {
+      "source": "nvidia_stack_alignment.md",
+      "score": 4,
+      "snippet_count": 2,
+      "top_snippet": "Agentic workflows can improve the demo story by breaking a vague request into readiness checks, evidence collection, and next-step outputs instead of returning a single chatbot answer."
+    },
+    {
+      "source": "security_controls.md",
+      "score": 4,
+      "snippet_count": 2,
+      "top_snippet": "Security review should happen before broad ingestion, especially when customer data may include private documents, compliance constraints, or policy-sensitive content."
+    },
+    {
+      "source": "shi_customer_readiness.md",
+      "score": 4,
+      "snippet_count": 2,
+      "top_snippet": "# SHI Customer Readiness Signals\n\nSHI opportunity reviews are strongest when the team can point to a defined use case, an executive sponsor, named delivery ownership, and a measurable business KPI for the first pilot."
+    }
+  ],
+  "confidence_breakdown": {
+    "average_readiness": 79,
+    "total_evidence_score": 12,
+    "evidence_strength_bonus": 6,
+    "blocker_penalty": 6,
+    "confidence_adjustment": 0
+  },
+  "average_readiness": 79
+}

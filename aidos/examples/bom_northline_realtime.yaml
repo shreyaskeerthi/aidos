@@ -1,0 +1,9 @@
+deployment_name: northline-realtime-ai-core
+gpu_model: H100
+node_count: 8
+target_platform: Cisco AI Pod
+required_vlans:
+  - "4101"
+  - "4102"
+  - "4103"
+  - "4199"

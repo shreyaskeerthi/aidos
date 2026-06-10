@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Darla Command Center</title>
+  <style>
+    :root {
+      --bg: #09111f;
+      --panel: rgba(10, 22, 38, 0.82);
+      --panel-border: rgba(114, 167, 255, 0.18);
+      --text: #eef4ff;
+      --muted: #9ab0cf;
+      --accent: #3ad0ff;
+      --accent-2: #78f0b3;
+      --warn: #ffbf5f;
+      --danger: #ff6d6d;
+      --grid: rgba(121, 170, 255, 0.08);
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      color: var(--text);
+      font-family: "Segoe UI", "IBM Plex Sans", sans-serif;
+      background:
+        radial-gradient(circle at top left, rgba(58, 208, 255, 0.18), transparent 28%),
+        radial-gradient(circle at top right, rgba(120, 240, 179, 0.12), transparent 24%),
+        linear-gradient(180deg, #08101a 0%, #0a1322 45%, #09111f 100%);
+      min-height: 100vh;
+    }
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      background-image:
+        linear-gradient(var(--grid) 1px, transparent 1px),
+        linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+      background-size: 32px 32px;
+      pointer-events: none;
+      opacity: 0.45;
+    }
+    .shell {
+      max-width: 1280px;
+      margin: 0 auto;
+      padding: 32px;
+      position: relative;
+      z-index: 1;
+    }
+    .hero, .panel {
+      background: var(--panel);
+      border: 1px solid var(--panel-border);
+      border-radius: 24px;
+      backdrop-filter: blur(16px);
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.35);
+    }
+    .hero { padding: 28px; margin-bottom: 24px; }
+    .eyebrow {
+      color: var(--accent);
+      text-transform: uppercase;
+      letter-spacing: 0.14em;
+      font-size: 12px;
+      margin-bottom: 10px;
+    }
+    h1 { margin: 0; font-size: 48px; line-height: 1; }
+    .subtitle { color: var(--muted); font-size: 18px; margin-top: 10px; }
+    .hero-grid, .content-grid {
+      display: grid;
+      gap: 24px;
+    }
+    .hero-grid { grid-template-columns: 1.25fr 0.75fr; margin-top: 24px; }
+    .content-grid { grid-template-columns: 1fr 1fr; }
+    .panel { padding: 24px; }
+    .panel h2 { margin-top: 0; font-size: 22px; }
+    .muted { color: var(--muted); }
+    .metrics { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+    .metric-card {
+      border: 1px solid rgba(122, 172, 255, 0.18);
+      border-radius: 18px;
+      padding: 16px;
+      background: rgba(5, 14, 25, 0.55);
+    }
+    .metric-label { display: block; color: var(--muted); font-size: 14px; margin-bottom: 8px; }
+    .metric-value { font-size: 34px; color: var(--accent-2); }
+    .score-ring {
+      width: 180px;
+      height: 180px;
+      border-radius: 50%;
+      margin: 8px auto 0;
+      display: grid;
+      place-items: center;
+      background: conic-gradient(var(--accent) 284.40000000000003deg, rgba(255,255,255,0.08) 0deg);
+    }
+    .score-ring > div {
+      width: 136px;
+      height: 136px;
+      border-radius: 50%;
+      background: #08111d;
+      display: grid;
+      place-items: center;
+      text-align: center;
+    }
+    ul { margin: 0; padding-left: 20px; }
+    li + li { margin-top: 10px; }
+    .severity {
+      display: inline-block;
+      min-width: 62px;
+      text-align: center;
+      margin-right: 10px;
+      padding: 4px 8px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.05em;
+    }
+    .severity.high { background: rgba(255, 109, 109, 0.16); color: var(--danger); }
+    .severity.medium { background: rgba(255, 191, 95, 0.16); color: var(--warn); }
+    .severity.ok { background: rgba(120, 240, 179, 0.16); color: var(--accent-2); }
+    .evidence-card {
+      border: 1px solid rgba(122, 172, 255, 0.18);
+      background: rgba(5, 14, 25, 0.55);
+      border-radius: 18px;
+      padding: 16px;
+    }
+    .evidence-card + .evidence-card { margin-top: 14px; }
+    .evidence-card h3 { margin: 0 0 8px; }
+    .evidence-score { color: var(--accent); margin: 0 0 12px; }
+    @media (max-width: 960px) {
+      .hero-grid, .content-grid { grid-template-columns: 1fr; }
+      .metrics { grid-template-columns: repeat(2, 1fr); }
+      h1 { font-size: 38px; }
+    }
+    @media (max-width: 640px) {
+      .shell { padding: 18px; }
+      .metrics { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <main class="shell">
+    <section class="hero">
+      <div class="eyebrow">GroundTruth Mission Control</div>
+      <h1>Darla</h1>
+      <p class="subtitle">Agentic customer readiness and execution cockpit</p>
+      <div class="hero-grid">
+        <div>
+          <div class="panel">
+            <h2>Customer Ask</h2>
+            <p class="muted">Need a web-ready grounded dashboard demo for customer security and readiness updates</p>
+            <h2>Objective</h2>
+            <p>Need a web-ready grounded dashboard demo for customer security and readiness updates</p>
+            <p class="muted">Generated 2026-06-03T20:07:49+00:00</p>
+          </div>
+        </div>
+        <div class="panel">
+          <h2>Readiness Pulse</h2>
+          <div class="score-ring"><div><strong style="font-size:40px;">79</strong><span class="muted">Overall score</span></div></div>
+          <p class="muted" style="text-align:center; margin-top:16px;">Confidence 95/100</p>
+          <p class="muted" style="text-align:center;">Backend: practice (darla-practice-deterministic)</p>
+        </div>
+      </div>
+    </section>
+    <section class="content-grid">
+      <section class="panel">
+        <h2>Readiness Scorecard</h2>
+        <div class="metrics">
+        <div class="metric-card">
+          <span class="metric-label">Business</span>
+          <strong class="metric-value">91</strong>
+        </div>
+        
+        <div class="metric-card">
+          <span class="metric-label">Data</span>
+          <strong class="metric-value">91</strong>
+        </div>
+        
+        <div class="metric-card">
+          <span class="metric-label">Security</span>
+          <strong class="metric-value">91</strong>
+        </div>
+        
+        <div class="metric-card">
+          <span class="metric-label">Infrastructure</span>
+          <strong class="metric-value">69</strong>
+        </div>
+        
+        <div class="metric-card">
+          <span class="metric-label">Ownership</span>
+          <strong class="metric-value">91</strong>
+        </div>
+        
+        <div class="metric-card">
+          <span class="metric-label">Timeline</span>
+          <strong class="metric-value">44</strong>
+        </div>
+        </div>
+      </section>
+      <section class="panel">
+        <h2>Confidence Breakdown</h2>
+        <ul><li>average_readiness: 79</li><li>total_evidence_score: 12</li><li>evidence_strength_bonus: 6</li><li>blocker_penalty: 6</li><li>confidence_adjustment: 0</li></ul>
+      </section>
+      <section class="panel">
+        <h2>Source Attribution</h2>
+        <ul><li>nvidia_stack_alignment.md (score=4, snippets=2)</li><li>security_controls.md (score=4, snippets=2)</li><li>shi_customer_readiness.md (score=4, snippets=2)</li></ul>
+      </section>
+      <section class="panel">
+        <h2>Blockers</h2>
+        <ul><li><span class="severity medium">MEDIUM</span>Infrastructure: Infrastructure readiness is 69/100. Darla needs stronger proof before this can be presented as deployment-ready.</li><li><span class="severity high">HIGH</span>Timeline: Timeline readiness is 44/100. Darla needs stronger proof before this can be presented as deployment-ready.</li></ul>
+      </section>
+      <section class="panel">
+        <h2>Generated Answer</h2>
+        <p>Darla practice-mode response (deterministic):
+Objective: Need a web-ready grounded dashboard demo for customer security and readiness updates
+Readiness summary: Business=91, Data=91, Security=91, Infrastructure=69, Ownership=91, Timeline=44
+Blockers: Infrastructure (medium), Timeline (high)
+Lowest readiness categories: Timeline=44, Infrastructure=69
+Ground-truth evidence:
+- [nvidia_stack_alignment.md] Agentic workflows can improve the demo story by breaking a vague request into readiness checks, evidence collection, and next-step outputs instead of returning a single chatbot answer.
+- [security_controls.md] Security review should happen before broad ingestion, especially when customer data may include private documents, compliance constraints, or policy-sensitive content.
+- [shi_customer_readiness.md] # SHI Customer Readiness Signals
+
+SHI opportunity reviews are strongest when the team can point to a defined use case, an executive sponsor, named delivery ownership, and a measurable business KPI for the first pilot.
+Top sources:
+- nvidia_stack_alignment.md (score=4, snippets=2)
+- security_controls.md (score=4, snippets=2)
+Recommended next actions:
+- Build a two-week POC plan with milestones, blockers, and exit criteria.
+- Set a review checkpoint for readiness after the first ingestion run.
+- Choose the deployment target and reserve GPU capacity for the demo environment.</p>
+      </section>
+      <section class="panel">
+        <h2>Evidence Rail</h2>
+        
+        <article class="evidence-card">
+          <h3>nvidia_stack_alignment.md</h3>
+          <p class="evidence-score">Evidence score: 4</p>
+          <ul><li>Agentic workflows can improve the demo story by breaking a vague request into readiness checks, evidence collection, and next-step outputs instead of returning a single chatbot answer.</li><li># NVIDIA Stack Alignment
+
+NVIDIA RAG Blueprint deployments typically align around document ingestion, retrieval, reranking, and grounded answer generation.</li></ul>
+        </article>
+        
+        <article class="evidence-card">
+          <h3>security_controls.md</h3>
+          <p class="evidence-score">Evidence score: 4</p>
+          <ul><li>Security review should happen before broad ingestion, especially when customer data may include private documents, compliance constraints, or policy-sensitive content.</li><li># Secure Ground Truth Controls
+
+Answers should be grounded in approved internal documents and should return citations for every material claim.</li></ul>
+        </article>
+        
+        <article class="evidence-card">
+          <h3>shi_customer_readiness.md</h3>
+          <p class="evidence-score">Evidence score: 4</p>
+          <ul><li># SHI Customer Readiness Signals
+
+SHI opportunity reviews are strongest when the team can point to a defined use case, an executive sponsor, named delivery ownership, and a measurable business KPI for the first pilot.</li><li>Customer readiness improves when the engagement includes an agreed timeline, success criteria, and a clear path from discovery to proof of concept.</li></ul>
+        </article>
+        
+      </section>
+      <section class="panel">
+        <h2>Next Actions</h2>
+        <ul><li>Build a two-week POC plan with milestones, blockers, and exit criteria.</li><li>Set a review checkpoint for readiness after the first ingestion run.</li><li>Choose the deployment target and reserve GPU capacity for the demo environment.</li><li>Document model endpoints, vector store settings, and deployment dependencies.</li><li>Confirm executive sponsor and measurable pilot KPI.</li><li>Frame the first release around one customer workflow with business impact.</li></ul>
+      </section>
+      <section class="panel">
+        <h2>Citations</h2>
+        <ul><li>nvidia_stack_alignment.md</li><li>security_controls.md</li><li>shi_customer_readiness.md</li></ul>
+      </section>
+    </section>
+  </main>
+</body>
+</html>

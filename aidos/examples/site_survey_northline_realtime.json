@@ -1,0 +1,17 @@
+{
+  "loading_dock": "yes",
+  "server_lift": "yes",
+  "rack_floor_psf": 240,
+  "liquid_cooling": "yes",
+  "power": "208V 30A 3-phase dual-feed",
+  "available_circuits": "yes",
+  "uplinks": "8x100G leaf-spine",
+  "ports_40g": "yes",
+  "vlan_config_needed": "yes",
+  "vlan_ids": [4101, 4102, 4103, 4199],
+  "network_diagram_provided": "yes",
+  "layout_blueprint_provided": "yes",
+  "available_rack_slots": 32,
+  "available_power_kw": 360,
+  "available_cooling_kw": 420
+}

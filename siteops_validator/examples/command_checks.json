@@ -1,0 +1,14 @@
+[
+  {
+    "name": "python-version",
+    "command": "py -3 --version",
+    "success_patterns": ["Python 3"],
+    "fail_patterns": ["not found", "error"]
+  },
+  {
+    "name": "network-placeholder",
+    "command": "echo VLAN 1201 reachable",
+    "success_patterns": ["reachable"],
+    "fail_patterns": ["mismatch", "failed"]
+  }
+]

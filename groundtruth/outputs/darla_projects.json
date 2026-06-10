@@ -1,0 +1,83 @@
+{
+  "selected_project": "nvidia-base-pod-deployment",
+  "projects": [
+    {
+      "slug": "darla",
+      "name": "Darla",
+      "description": "Need tabbed command center with stakeholder map, timeline confidence, and evidence explainability",
+      "contexts": [
+        {
+          "text": "Need tabbed command center with stakeholder map, timeline confidence, and evidence explainability",
+          "source": "seeded from latest run"
+        }
+      ],
+      "stakeholders": [
+        {
+          "name": "Executive Sponsor",
+          "role": "Executive Sponsor",
+          "note": "Missing",
+          "status": "red",
+          "share_with": ""
+        },
+        {
+          "name": "Technical Owner",
+          "role": "Technical Owner",
+          "note": "Missing",
+          "status": "red",
+          "share_with": ""
+        },
+        {
+          "name": "Security Owner",
+          "role": "Security Owner",
+          "note": "Missing",
+          "status": "red",
+          "share_with": ""
+        },
+        {
+          "name": "Delivery Lead",
+          "role": "Delivery Lead",
+          "note": "Missing",
+          "status": "red",
+          "share_with": ""
+        }
+      ]
+    },
+    {
+      "slug": "project-dario",
+      "name": "project dario",
+      "description": "a test",
+      "contexts": [
+        {
+          "text": "Environment:\r\n- 8x H100 nodes\r\n- Mellanox switches\r\n- VLAN 210 configured\r\n\r\nDeployment Status:\r\n- Rack and stack complete\r\n- Firmware updated to BIOS 2.4.3\r\n- Kubernetes cluster initialized\r\n\r\nIssues:\r\n- Node 3 GPU not detected\r\n- Error in nvidia-smi\r\n\r\nResolution:\r\n- Reseated PCIe cable\r\n- GPU detected after reboot\r\n\r\nNext Steps:\r\n- Run burn-in testing\r\n- Validate NCCL performance",
+          "source": "manual"
+        }
+      ],
+      "stakeholders": []
+    },
+    {
+      "slug": "nvidia-base-pod-deployment",
+      "name": "NVIDIA Base Pod Deployment",
+      "description": "New project workspace",
+      "contexts": [
+        {
+          "text": "Environment:\r\n- 8x H100 nodes\r\n- Mellanox switches\r\n- VLAN 210 configured\r\n\r\nDeployment Status:\r\n- Rack and stack complete\r\n- Firmware updated to BIOS 2.4.3\r\n- Kubernetes cluster initialized\r\n\r\nIssues:\r\n- Node 3 GPU not detected\r\n- Error in nvidia-smi\r\n\r\nResolution:\r\n- Reseated PCIe cable\r\n- GPU detected after reboot\r\n\r\nNext Steps:\r\n- Run burn-in testing\r\n- Validate NCCL performance",
+          "source": "manual"
+        }
+      ],
+      "stakeholders": [
+        {
+          "name": "Customer DC Lead",
+          "role": "Infrastructure Owner",
+          "note": "Infra owner",
+          "share_with": "dc_lead@company.com"
+        },
+        {
+          "name": "shkee",
+          "role": "SHI Deployment Engineer",
+          "note": "Integration + Validation",
+          "share_with": "shi_engineer@shi_email.com"
+        }
+      ]
+    }
+  ]
+}

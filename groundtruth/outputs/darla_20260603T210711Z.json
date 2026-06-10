@@ -1,0 +1,248 @@
+{
+  "project": "Darla",
+  "subtitle": "Agentic customer readiness and execution cockpit",
+  "timestamp_utc": "2026-06-03T21:07:11+00:00",
+  "customer_ask": "Need tabbed command center with stakeholder map, timeline confidence, and evidence explainability",
+  "objective": "Need tabbed command center with stakeholder map, timeline confidence, and evidence explainability",
+  "readiness": {
+    "Business": 44,
+    "Data": 69,
+    "Security": 44,
+    "Infrastructure": 91,
+    "Ownership": 80,
+    "Timeline": 44
+  },
+  "blockers": [
+    {
+      "category": "Business",
+      "severity": "high",
+      "message": "Business readiness is 44/100. Darla needs stronger proof before this can be presented as deployment-ready."
+    },
+    {
+      "category": "Data",
+      "severity": "medium",
+      "message": "Data readiness is 69/100. Darla needs stronger proof before this can be presented as deployment-ready."
+    },
+    {
+      "category": "Security",
+      "severity": "high",
+      "message": "Security readiness is 44/100. Darla needs stronger proof before this can be presented as deployment-ready."
+    },
+    {
+      "category": "Timeline",
+      "severity": "high",
+      "message": "Timeline readiness is 44/100. Darla needs stronger proof before this can be presented as deployment-ready."
+    }
+  ],
+  "evidence": [
+    {
+      "source": "nvidia_stack_alignment.md",
+      "score": 2,
+      "snippets": [
+        "For enterprise pilots, teams often need on-prem or hybrid deployment options, GPU planning, model endpoint configuration, and a documented vector database strategy.",
+        "Agentic workflows can improve the demo story by breaking a vague request into readiness checks, evidence collection, and next-step outputs instead of returning a single chatbot answer."
+      ]
+    }
+  ],
+  "next_actions": [
+    "Confirm executive sponsor and measurable pilot KPI.",
+    "Frame the first release around one customer workflow with business impact.",
+    "Complete a security review before scaling ingestion beyond the pilot corpus.",
+    "Lock approved sources and require evidence-backed answers in every demo flow.",
+    "Build a two-week POC plan with milestones, blockers, and exit criteria.",
+    "Set a review checkpoint for readiness after the first ingestion run."
+  ],
+  "confidence": 62,
+  "policies": {
+    "allowed_sources": [
+      "groundtruth/data"
+    ],
+    "internet_access": false,
+    "require_citations": true,
+    "minimum_evidence_matches": 1
+  },
+  "backend_mode": "practice",
+  "backend_model": "darla-practice-deterministic",
+  "answer": "Darla practice-mode response (deterministic):\nObjective: Need tabbed command center with stakeholder map, timeline confidence, and evidence explainability\nReadiness summary: Business=44, Data=69, Security=44, Infrastructure=91, Ownership=80, Timeline=44\nBlockers: Business (high), Data (medium), Security (high), Timeline (high)\nLowest readiness categories: Business=44, Security=44\nGround-truth evidence:\n- [nvidia_stack_alignment.md] For enterprise pilots, teams often need on-prem or hybrid deployment options, GPU planning, model endpoint configuration, and a documented vector database strategy.\nTop sources:\n- nvidia_stack_alignment.md (score=2, snippets=2)\nRecommended next actions:\n- Confirm executive sponsor and measurable pilot KPI.\n- Frame the first release around one customer workflow with business impact.\n- Complete a security review before scaling ingestion beyond the pilot corpus.",
+  "citations": [
+    "nvidia_stack_alignment.md"
+  ],
+  "verified": true,
+  "source_attribution": [
+    {
+      "source": "nvidia_stack_alignment.md",
+      "score": 2,
+      "snippet_count": 2,
+      "top_snippet": "For enterprise pilots, teams often need on-prem or hybrid deployment options, GPU planning, model endpoint configuration, and a documented vector database strategy."
+    }
+  ],
+  "confidence_breakdown": {
+    "average_readiness": 62,
+    "total_evidence_score": 2,
+    "evidence_strength_bonus": 1,
+    "blocker_penalty": 9,
+    "confidence_adjustment": -8
+  },
+  "ui_sections": {
+    "overview": {
+      "gauge": {
+        "value": 62,
+        "label": "LOW READINESS",
+        "color": "red"
+      },
+      "confidence": 62,
+      "backend_mode": "practice",
+      "readiness": {
+        "Business": 44,
+        "Data": 69,
+        "Security": 44,
+        "Infrastructure": 91,
+        "Ownership": 80,
+        "Timeline": 44
+      },
+      "blockers": [
+        {
+          "category": "Business",
+          "severity": "high",
+          "message": "Business readiness is 44/100. Darla needs stronger proof before this can be presented as deployment-ready."
+        },
+        {
+          "category": "Data",
+          "severity": "medium",
+          "message": "Data readiness is 69/100. Darla needs stronger proof before this can be presented as deployment-ready."
+        },
+        {
+          "category": "Security",
+          "severity": "high",
+          "message": "Security readiness is 44/100. Darla needs stronger proof before this can be presented as deployment-ready."
+        },
+        {
+          "category": "Timeline",
+          "severity": "high",
+          "message": "Timeline readiness is 44/100. Darla needs stronger proof before this can be presented as deployment-ready."
+        }
+      ],
+      "recommendations": [
+        "Confirm executive sponsor and measurable pilot KPI.",
+        "Frame the first release around one customer workflow with business impact.",
+        "Complete a security review before scaling ingestion beyond the pilot corpus.",
+        "Lock approved sources and require evidence-backed answers in every demo flow."
+      ],
+      "quick_evidence": [
+        "nvidia_stack_alignment.md"
+      ]
+    },
+    "stakeholders": {
+      "stakeholders": {
+        "Executive Sponsor": {
+          "status": "red",
+          "note": "Missing"
+        },
+        "Technical Owner": {
+          "status": "red",
+          "note": "Missing"
+        },
+        "Security Owner": {
+          "status": "red",
+          "note": "Missing"
+        },
+        "Delivery Lead": {
+          "status": "red",
+          "note": "Missing"
+        }
+      },
+      "missing_roles": [
+        "Executive Sponsor",
+        "Technical Owner",
+        "Security Owner",
+        "Delivery Lead"
+      ],
+      "risk_callout": "No executive sponsor -> high failure risk"
+    },
+    "timeline": {
+      "phases": [
+        {
+          "phase": "Discovery",
+          "status": "red",
+          "confidence": "Low",
+          "score": 44
+        },
+        {
+          "phase": "Data Ingestion",
+          "status": "yellow",
+          "confidence": "Medium",
+          "score": 69
+        },
+        {
+          "phase": "Security Validation",
+          "status": "red",
+          "confidence": "Low",
+          "score": 44
+        },
+        {
+          "phase": "POC Execution (2 weeks)",
+          "status": "yellow",
+          "confidence": "Medium",
+          "score": 71
+        }
+      ],
+      "missing_proof": [
+        "Discovery",
+        "Data Ingestion",
+        "Security Validation",
+        "POC Execution (2 weeks)"
+      ]
+    },
+    "documents": {
+      "documents": [
+        {
+          "source": "nvidia_stack_alignment.md",
+          "score": 2,
+          "top_snippet": "For enterprise pilots, teams often need on-prem or hybrid deployment options, GPU planning, model endpoint configuration, and a documented vector database strategy.",
+          "impacted_categories": [
+            "Data",
+            "Infrastructure",
+            "Ownership"
+          ]
+        }
+      ]
+    },
+    "agent_flow": {
+      "steps": [
+        {
+          "name": "Intake Agent",
+          "status": "done",
+          "duration_ms": 16
+        },
+        {
+          "name": "Readiness Agent",
+          "status": "done",
+          "duration_ms": 28
+        },
+        {
+          "name": "Risk Agent",
+          "status": "done",
+          "duration_ms": 12
+        },
+        {
+          "name": "Evidence Agent",
+          "status": "done",
+          "duration_ms": 31
+        },
+        {
+          "name": "Output Composer",
+          "status": "done",
+          "duration_ms": 24
+        }
+      ]
+    },
+    "actions": {
+      "items": [
+        "Generate Executive Brief",
+        "Generate Engineering Checklist",
+        "Export POC Plan"
+      ]
+    }
+  },
+  "average_readiness": 62
+}

@@ -1,0 +1,107 @@
+{
+  "app": {
+    "name": "Darla",
+    "subtitle": "Agentic customer readiness and execution cockpit",
+    "theme": "mission-control"
+  },
+  "policies": {
+    "allowed_sources": [
+      "groundtruth/data"
+    ],
+    "internet_access": false,
+    "require_citations": true,
+    "minimum_evidence_matches": 1
+  },
+  "retrieval": {
+    "max_evidence": 4,
+    "min_score": 2,
+    "max_snippets_per_source": 2
+  },
+  "scoring": {
+    "base_score": 44,
+    "keyword_bonus": 11,
+    "evidence_bonus": 14,
+    "max_score": 92,
+    "categories": {
+      "Business": [
+        "roi",
+        "value",
+        "outcome",
+        "budget",
+        "sponsor",
+        "kpi",
+        "use case"
+      ],
+      "Data": [
+        "data",
+        "documents",
+        "corpus",
+        "source",
+        "citations",
+        "knowledge base",
+        "retrieval"
+      ],
+      "Security": [
+        "security",
+        "compliance",
+        "pii",
+        "governance",
+        "guardrails",
+        "policy",
+        "private"
+      ],
+      "Infrastructure": [
+        "on-prem",
+        "hybrid",
+        "docker",
+        "kubernetes",
+        "helm",
+        "gpu",
+        "deployment"
+      ],
+      "Ownership": [
+        "owner",
+        "stakeholder",
+        "delivery",
+        "sales",
+        "engineering",
+        "sponsor",
+        "team"
+      ],
+      "Timeline": [
+        "week",
+        "sprint",
+        "quarter",
+        "deadline",
+        "milestone",
+        "roadmap"
+      ]
+    }
+  },
+  "actions": {
+    "Business": [
+      "Confirm executive sponsor and measurable pilot KPI.",
+      "Frame the first release around one customer workflow with business impact."
+    ],
+    "Data": [
+      "Validate the initial corpus and citation quality for the top user journeys.",
+      "Define collection boundaries and ingestion acceptance checks."
+    ],
+    "Security": [
+      "Complete a security review before scaling ingestion beyond the pilot corpus.",
+      "Lock approved sources and require evidence-backed answers in every demo flow."
+    ],
+    "Infrastructure": [
+      "Choose the deployment target and reserve GPU capacity for the demo environment.",
+      "Document model endpoints, vector store settings, and deployment dependencies."
+    ],
+    "Ownership": [
+      "Assign a named owner for sales engineering, delivery, and customer approval.",
+      "Create a handoff path from discovery to pilot execution."
+    ],
+    "Timeline": [
+      "Build a two-week POC plan with milestones, blockers, and exit criteria.",
+      "Set a review checkpoint for readiness after the first ingestion run."
+    ]
+  }
+}
