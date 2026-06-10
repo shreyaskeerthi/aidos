@@ -7,7 +7,7 @@ import pandas as pd
 
 from aidos.ingestion import ingest_inputs
 from aidos.netbox_sync import build_netbox_payload
-from aidos.parsers import parse_network_layout_workbook
+from aidos.parsers import parse_deployment_intent_workbook, parse_network_layout_workbook
 from aidos.truth import build_canonical_sot
 
 
@@ -146,3 +146,80 @@ def test_build_netbox_payload_merges_network_layout(tmp_path: Path, monkeypatch)
     assert len(payload.cables) == 1
     assert payload.cables[0]["source_device"] == "sjc-phase2-node-1"
     assert payload.cables[0]["destination_device"] == "leaf-01"
+
+
+def test_parse_deployment_intent_workbook_reads_bom_sheet_not_first(
+    tmp_path: Path, monkeypatch
+) -> None:
+    workbook_path = tmp_path / "mixed_intake.xlsx"
+    workbook_path.write_text("placeholder", encoding="utf-8")
+
+    survey_frame = pd.DataFrame(
+        [
+            {"Field": "loading_dock", "Value": "yes"},
+            {"Field": "server_lift", "Value": "yes"},
+        ]
+    )
+    bom_frame = pd.DataFrame(
+        [
+            {"Field": "deployment_name", "Value": "from-bom-sheet"},
+            {"Field": "gpu_model", "Value": "H100"},
+            {"Field": "node_count", "Value": 8},
+            {"Field": "target_platform", "Value": "Cisco AI Pod"},
+            {"Field": "required_vlans", "Value": "101,102,103"},
+        ]
+    )
+
+    monkeypatch.setattr(
+        pd,
+        "read_excel",
+        lambda *_args, **_kwargs: {
+            "Site Survey": survey_frame,
+            "Bill of Materials": bom_frame,
+        },
+    )
+
+    parsed = parse_deployment_intent_workbook(str(workbook_path))
+
+    assert parsed["deployment_name"] == "from-bom-sheet"
+    assert parsed["gpu_model"] == "H100"
+    assert parsed["node_count"] == 8
+    assert parsed["required_vlans"] == ["101", "102", "103"]
+
+
+def test_ingest_inputs_uses_bom_sheet_from_excel_path(tmp_path: Path, monkeypatch) -> None:
+    survey_path = tmp_path / "survey.json"
+    workbook_path = tmp_path / "intake.xlsx"
+
+    survey_path.write_text(
+        json.dumps(
+            {
+                "loading_dock": "yes",
+                "server_lift": "yes",
+                "rack_floor_psf": 200,
+            }
+        ),
+        encoding="utf-8",
+    )
+    workbook_path.write_text("placeholder", encoding="utf-8")
+
+    monkeypatch.setattr(
+        pd,
+        "read_excel",
+        lambda *_args, **_kwargs: {
+            "Summary": pd.DataFrame([{"Field": "note", "Value": "metadata"}]),
+            "BOM": pd.DataFrame(
+                [
+                    {"Field": "deployment_name", "Value": "bom-intake"},
+                    {"Field": "gpu_model", "Value": "B200"},
+                    {"Field": "node_count", "Value": 2},
+                ]
+            ),
+        },
+    )
+
+    bundle = ingest_inputs(str(survey_path), bom_path=str(workbook_path))
+
+    assert bundle.intent.deployment_name == "bom-intake"
+    assert bundle.intent.gpu_model == "B200"
+    assert bundle.intent.node_count == 2

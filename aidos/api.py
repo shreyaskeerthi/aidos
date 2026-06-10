@@ -199,6 +199,7 @@ def _load_latest_inputs(project_output_dir: str) -> dict[str, str | None]:
             "bom_path": None,
             "workload_path": None,
             "context_path": None,
+            "network_layout_path": None,
         }
     try:
         payload = JsonStateStore(intake_meta).read()
@@ -209,6 +210,7 @@ def _load_latest_inputs(project_output_dir: str) -> dict[str, str | None]:
         "bom_path": payload.get("bom_path"),
         "workload_path": payload.get("workload_path"),
         "context_path": payload.get("context_path"),
+        "network_layout_path": payload.get("network_layout_path"),
     }
 
 
@@ -263,28 +265,40 @@ def _classify_intake_path(path: str) -> str | None:
 
 def _reclassify_uploaded_inputs(paths: dict[str, str | None]) -> tuple[dict[str, str | None], dict[str, str]]:
     corrected: dict[str, str | None] = {
-        "survey_path": None,
-        "bom_path": None,
-        "workload_path": None,
-        "context_path": None,
+        "survey_path": paths.get("survey_path"),
+        "bom_path": paths.get("bom_path"),
+        "workload_path": paths.get("workload_path"),
+        "context_path": paths.get("context_path"),
     }
     remapped: dict[str, str] = {}
-    detected_by_label: dict[str, tuple[str, str]] = {}
+    detected_by_label: dict[str, list[tuple[str, str]]] = {}
 
     for key, path in paths.items():
         if not path:
             continue
         detected = _classify_intake_path(path)
         if detected is not None:
-            detected_by_label[detected] = (key, path)
+            detected_by_label.setdefault(detected, []).append((key, path))
 
-    # Prefer semantic assignment for uniquely-detected types.
+    # Only use semantic reassignment to fill missing slots; do not override explicit upload fields.
     for detected_label in ["survey", "bom", "workload", "context"]:
-        source = detected_by_label.get(detected_label)
-        if source is None:
-            continue
-        src_key, src_path = source
         target_key = f"{detected_label}_path"
+        if corrected.get(target_key):
+            continue
+
+        candidates = detected_by_label.get(detected_label) or []
+        if not candidates:
+            continue
+
+        source = None
+        for src_key, src_path in candidates:
+            if src_key == target_key:
+                source = (src_key, src_path)
+                break
+        if source is None:
+            source = candidates[0]
+
+        src_key, src_path = source
         corrected[target_key] = src_path
         if src_key != target_key:
             remapped[src_key] = target_key
@@ -343,21 +357,13 @@ def project_flow(project_id: str, payload: ProjectFlowRequest) -> dict:
     bom_path = payload.bom_path or latest.get("bom_path")
     workload_path = payload.workload_path or latest.get("workload_path")
     context_path = payload.context_path or latest.get("context_path")
+    network_layout_path = payload.network_layout_path or latest.get("network_layout_path")
 
     if not survey_path:
         raise HTTPException(
             status_code=400,
             detail="survey_path is required. Provide it in form or upload survey first.",
         )
-    if not bom_path and not workload_path:
-        raise HTTPException(
-            status_code=400,
-            detail=(
-                "Provide bom_path or workload_path. "
-                "Tip: upload a BOM or workload profile in the UI first."
-            ),
-        )
-
     try:
         artifacts = run_mvp_workflow(
             survey_path=survey_path,
@@ -366,7 +372,7 @@ def project_flow(project_id: str, payload: ProjectFlowRequest) -> dict:
             workload_path=workload_path,
             pyats_testbed_path=payload.pyats_testbed_path,
             context_path=context_path,
-            network_layout_path=payload.network_layout_path,
+            network_layout_path=network_layout_path,
             observed_path=payload.observed_path,
             sync_netbox=payload.sync_netbox,
             execute=payload.execute,
@@ -426,9 +432,6 @@ def project_chat_session(project_id: str, session_id: str) -> dict:
 
 @app.post("/v1/flow")
 def flow(payload: FlowRequest) -> dict:
-    if not payload.bom_path and not payload.workload_path:
-        raise HTTPException(status_code=400, detail="Provide bom_path or workload_path")
-
     try:
         artifacts = run_mvp_workflow(
             survey_path=payload.survey_path,

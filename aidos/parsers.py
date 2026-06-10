@@ -318,6 +318,87 @@ def parse_network_layout_workbook(path_str: str) -> dict[str, list[dict[str, Any
     return {"vlans": vlans, "cables": cables}
 
 
+def _sheet_to_key_value(frame: pd.DataFrame) -> dict[str, Any]:
+    if frame.empty:
+        return {}
+
+    cols = [str(col).strip().lower() for col in frame.columns]
+    if {"field", "value"}.issubset(set(cols)):
+        key_col = frame.columns[cols.index("field")]
+        value_col = frame.columns[cols.index("value")]
+        parsed = {
+            str(row[key_col]).strip(): row[value_col]
+            for _, row in frame.iterrows()
+            if str(row[key_col]).strip() and str(row[key_col]).strip().lower() != "nan"
+        }
+        return parsed
+
+    if len(frame.columns) >= 2:
+        key_col = frame.columns[0]
+        value_col = frame.columns[1]
+        parsed = {
+            str(row[key_col]).strip(): row[value_col]
+            for _, row in frame.iterrows()
+            if str(row[key_col]).strip() and str(row[key_col]).strip().lower() != "nan"
+        }
+        return parsed
+
+    return {}
+
+
+def _sheet_to_row_record(frame: pd.DataFrame) -> dict[str, Any]:
+    if frame.empty:
+        return {}
+
+    col_map = {col: _canonical_col_name(str(col)) for col in frame.columns}
+    normalized = frame.rename(columns=col_map)
+    for _, row in normalized.iterrows():
+        row_dict = {
+            str(k): v
+            for k, v in row.to_dict().items()
+            if not _is_blank(v)
+        }
+        if row_dict:
+            return row_dict
+    return {}
+
+
+def parse_deployment_intent_workbook(path_str: str) -> dict[str, Any]:
+    """Extract deployment intent from BOM-like workbook sheets."""
+
+    path = Path(path_str)
+    if not path.exists():
+        raise FileNotFoundError(f"Input file not found: {path}")
+    if path.suffix.lower() not in {".xlsx", ".xlsm", ".xls"}:
+        raise ValueError("Deployment intent workbook must be an Excel file (.xlsx/.xlsm/.xls)")
+
+    workbook = pd.read_excel(path, sheet_name=None)
+    name_tokens = {"bom", "bill", "materials", "intent", "deployment"}
+
+    for sheet_name, frame in workbook.items():
+        lower_name = str(sheet_name).strip().lower()
+        if not any(token in lower_name for token in name_tokens):
+            continue
+
+        candidate = _sheet_to_key_value(frame)
+        if not candidate:
+            candidate = _sheet_to_row_record(frame)
+        if not candidate:
+            continue
+
+        normalized = _normalize_record(candidate)
+        if "gpu_model" not in normalized:
+            continue
+
+        model = DeploymentIntent.model_validate(normalized)
+        return model.model_dump(mode="python")
+
+    raise ValueError(
+        "No BOM sheet with deployment intent fields found. "
+        "Expected a BOM/Bill of Materials sheet containing gpu_model and related fields."
+    )
+
+
 def _read_json(path: Path) -> dict[str, Any]:
     data = json.loads(path.read_text(encoding="utf-8"))
     if not isinstance(data, dict):

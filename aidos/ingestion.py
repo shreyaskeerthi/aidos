@@ -4,9 +4,14 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from datetime import datetime, timezone
+from pathlib import Path
 from typing import Any
 
-from aidos.parsers import parse_network_layout_workbook, read_key_value_file
+from aidos.parsers import (
+    parse_deployment_intent_workbook,
+    parse_network_layout_workbook,
+    read_key_value_file,
+)
 from aidos.schemas import (
     DeploymentIntent,
     Evidence,
@@ -55,6 +60,108 @@ def build_bom_from_workload(workload: WorkloadProfile) -> DeploymentIntent:
     )
 
 
+def _coerce_int(value: Any, default: int) -> int:
+    if value is None:
+        return default
+    try:
+        return max(int(float(str(value).strip())), 1)
+    except (TypeError, ValueError):
+        return default
+
+
+def _coerce_vlans(value: Any) -> list[str]:
+    if value is None:
+        return []
+    if isinstance(value, list):
+        return [str(item).strip() for item in value if str(item).strip()]
+    text = str(value).strip()
+    if not text:
+        return []
+    return [part.strip() for part in text.split(",") if part.strip()]
+
+
+def infer_intent_from_inputs(
+    survey_raw: dict[str, Any],
+    context_raw: dict[str, Any],
+    network_layout: dict[str, list[dict[str, Any]]] | None,
+) -> DeploymentIntent:
+    """Infer deployment intent when no BOM/workload file is supplied.
+
+    This keeps no-BOM intake adaptive for mixed workbook scenarios.
+    """
+
+    deployment_name = (
+        str(
+            survey_raw.get("deployment_name")
+            or context_raw.get("project_name")
+            or "aidos-adaptive-deployment"
+        )
+        .strip()
+        .replace(" ", "-")
+        .lower()
+    )
+    gpu_model = str(
+        survey_raw.get("gpu_model")
+        or context_raw.get("gpu_model")
+        or context_raw.get("gpu_model_preference")
+        or "H100"
+    ).strip()
+    node_count = _coerce_int(
+        survey_raw.get("node_count")
+        or context_raw.get("node_count")
+        or context_raw.get("desired_node_count"),
+        default=4,
+    )
+    target_platform = str(
+        survey_raw.get("target_platform")
+        or context_raw.get("target_platform")
+        or ("Cisco AI Pod" if node_count >= 4 else "Compact AI Cluster")
+    ).strip()
+
+    required_vlans = _coerce_vlans(
+        survey_raw.get("required_vlans")
+        or survey_raw.get("vlan_ids")
+        or context_raw.get("required_vlans")
+    )
+    if not required_vlans and network_layout is not None:
+        inferred = [str(item.get("vid")) for item in network_layout.get("vlans", []) if item.get("vid") is not None]
+        required_vlans = sorted(set(inferred), key=lambda value: int(value) if value.isdigit() else value)
+
+    return DeploymentIntent(
+        deployment_name=deployment_name or "aidos-adaptive-deployment",
+        gpu_model=gpu_model or "H100",
+        node_count=node_count,
+        target_platform=target_platform or None,
+        required_vlans=required_vlans,
+    )
+
+
+def _load_bom_payload(path_str: str) -> dict[str, Any]:
+    suffix = Path(path_str).suffix.lower()
+    if suffix in {".xlsx", ".xlsm", ".xls"}:
+        try:
+            return parse_deployment_intent_workbook(path_str)
+        except Exception:
+            # Fall back to generic key/value parser for non-BOM spreadsheets.
+            return read_key_value_file(path_str)
+    return read_key_value_file(path_str)
+
+
+def _infer_intent_from_workbooks(*paths: str | None) -> DeploymentIntent | None:
+    for path in paths:
+        if not path:
+            continue
+        suffix = Path(path).suffix.lower()
+        if suffix not in {".xlsx", ".xlsm", ".xls"}:
+            continue
+        try:
+            payload = parse_deployment_intent_workbook(path)
+            return DeploymentIntent.model_validate(payload)
+        except Exception:
+            continue
+    return None
+
+
 def ingest_inputs(
     survey_path: str,
     *,
@@ -68,6 +175,13 @@ def ingest_inputs(
     survey_raw = read_key_value_file(survey_path)
     survey = SiteSurvey.model_validate(survey_raw)
 
+    context_raw = read_key_value_file(context_path) if context_path else {}
+    network_layout = (
+        parse_network_layout_workbook(network_layout_path)
+        if network_layout_path
+        else None
+    )
+
     workload: WorkloadProfile | None = None
     workload_raw: dict[str, Any] | None = None
     if workload_path:
@@ -75,7 +189,7 @@ def ingest_inputs(
         workload = WorkloadProfile.model_validate(workload_raw)
 
     if bom_path:
-        bom_raw = read_key_value_file(bom_path)
+        bom_raw = _load_bom_payload(bom_path)
         intent = DeploymentIntent.model_validate(bom_raw)
         bom_mode = "provided_bom"
     elif workload is not None:
@@ -83,14 +197,16 @@ def ingest_inputs(
         intent = DeploymentIntent.model_validate(bom_raw)
         bom_mode = "generated_bom"
     else:
-        raise ValueError("Provide either bom_path or workload_path.")
+        workbook_intent = _infer_intent_from_workbooks(survey_path, context_path, network_layout_path)
+        if workbook_intent is not None:
+            inferred_intent = workbook_intent
+            bom_mode = "inferred_from_workbook_bom"
+        else:
+            inferred_intent = infer_intent_from_inputs(survey_raw, context_raw, network_layout)
+            bom_mode = "inferred_from_inputs"
+        bom_raw = inferred_intent.model_dump(mode="python")
+        intent = inferred_intent
 
-    context_raw = read_key_value_file(context_path) if context_path else {}
-    network_layout = (
-        parse_network_layout_workbook(network_layout_path)
-        if network_layout_path
-        else None
-    )
     project = ProjectContext.model_validate(context_raw or {})
 
     provenance = [
