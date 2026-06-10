@@ -385,6 +385,15 @@ def project_flow(project_id: str, payload: ProjectFlowRequest) -> dict:
                 "errors": exc.errors(),
             },
         ) from exc
+    except Exception as exc:  # noqa: BLE001
+        raise HTTPException(
+            status_code=400,
+            detail={
+                "message": "Flow execution failed due to unexpected input or parsing error.",
+                "error": str(exc),
+                "hint": "Verify uploaded survey/BOM/workbook formats and field mappings.",
+            },
+        ) from exc
 
     return {
         "project_id": project_id,
@@ -445,6 +454,15 @@ def flow(payload: FlowRequest) -> dict:
             detail={
                 "message": "Intake file validation failed. Check survey/BOM/workload file mapping and required fields.",
                 "errors": exc.errors(),
+            },
+        ) from exc
+    except Exception as exc:  # noqa: BLE001
+        raise HTTPException(
+            status_code=400,
+            detail={
+                "message": "Flow execution failed due to unexpected input or parsing error.",
+                "error": str(exc),
+                "hint": "Verify uploaded survey/BOM/workbook formats and field mappings.",
             },
         ) from exc
 

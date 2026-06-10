@@ -139,7 +139,16 @@ def _is_blank(value: Any) -> bool:
         return True
     if isinstance(value, str):
         return not value.strip()
-    return bool(pd.isna(value))
+    try:
+        is_na = pd.isna(value)
+        # pandas may return array-like for non-scalar objects.
+        if isinstance(is_na, (list, tuple)):
+            return all(bool(item) for item in is_na)
+        if hasattr(is_na, "all"):
+            return bool(is_na.all())
+        return bool(is_na)
+    except Exception:
+        return False
 
 
 def _first_present(row: dict[str, Any], keys: list[str]) -> Any:
