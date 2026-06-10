@@ -192,6 +192,14 @@ class IntakeClearRequest(BaseModel):
     remove_uploaded_files: bool = True
 
 
+class IntakeAnalysisRequest(BaseModel):
+    survey_path: str | None = None
+    bom_path: str | None = None
+    workload_path: str | None = None
+    context_path: str | None = None
+    network_layout_path: str | None = None
+
+
 @app.get("/health")
 def health() -> dict[str, str]:
     return {"status": "ok", "service": "aidos-api"}
@@ -573,6 +581,80 @@ def project_flow(project_id: str, payload: ProjectFlowRequest) -> dict:
         "observed_state_snapshot_json": str(artifacts.observed_state_snapshot_json),
         "post_execution_verification_report_json": str(artifacts.post_execution_verification_report_json),
         "run_debug": run_debug,
+    }
+
+
+@app.post("/v1/projects/{project_id}/intake/analyze")
+def project_analyze_intake(project_id: str, payload: IntakeAnalysisRequest) -> dict:
+    project = _require_project(project_id)
+    latest = _load_latest_inputs(project["output_dir"])
+
+    survey_path = payload.survey_path or latest.get("survey_path")
+    bom_path = payload.bom_path or latest.get("bom_path")
+    workload_path = payload.workload_path or latest.get("workload_path")
+    context_path = payload.context_path or latest.get("context_path")
+    network_layout_path = payload.network_layout_path or latest.get("network_layout_path")
+
+    if not survey_path:
+        raise HTTPException(status_code=400, detail="survey_path is required for intake analysis")
+
+    inferred_layout = network_layout_path
+    if not inferred_layout and survey_path:
+        suffix = Path(survey_path).suffix.lower()
+        if suffix in {".xlsx", ".xlsm", ".xls"}:
+            try:
+                parsed = parse_network_layout_workbook(survey_path)
+            except Exception:
+                parsed = {"vlans": [], "cables": []}
+            if parsed.get("vlans") or parsed.get("cables"):
+                inferred_layout = survey_path
+
+    artifacts = run_mvp_workflow(
+        survey_path=survey_path,
+        output_dir=project["output_dir"],
+        bom_path=bom_path,
+        workload_path=workload_path,
+        context_path=context_path,
+        network_layout_path=inferred_layout,
+        observed_path=None,
+        sync_netbox=False,
+        execute=False,
+        auto_approve=False,
+    )
+
+    debug = _build_run_debug_summary(
+        resolved_inputs={
+            "survey_path": survey_path,
+            "bom_path": bom_path,
+            "workload_path": workload_path,
+            "context_path": context_path,
+            "network_layout_path": inferred_layout,
+            "observed_path": None,
+        },
+        netbox_sync_payloads_json=artifacts.netbox_sync_payloads_json,
+        validation_report_json=artifacts.validation_report_json,
+    )
+
+    answer = converse(
+        (
+            "Analyze this intake extraction result for completeness and likely misses. "
+            f"Resolved inputs: {debug.get('resolved_inputs')} | "
+            f"NetBox payload counts: {debug.get('netbox', {}).get('payload_counts')}"
+        ),
+        project["output_dir"],
+        session_id="intake-analysis",
+    )
+
+    return {
+        "project_id": project_id,
+        "run_debug": debug,
+        "analysis": answer.model_dump(mode="json"),
+        "artifacts": {
+            "canonical_sot_json": str(artifacts.canonical_sot_json),
+            "netbox_sync_payloads_json": str(artifacts.netbox_sync_payloads_json),
+            "validation_report_json": str(artifacts.validation_report_json),
+            "missing_data_report_json": str(artifacts.missing_data_report_json),
+        },
     }
 
 

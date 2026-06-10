@@ -159,6 +159,51 @@ def _first_present(row: dict[str, Any], keys: list[str]) -> Any:
     return None
 
 
+def _first_semantic(
+    row: dict[str, Any],
+    *,
+    role_tokens: set[str],
+    field_tokens: set[str],
+    exclude_tokens: set[str] | None = None,
+) -> Any:
+    exclude = exclude_tokens or set()
+    for key, value in row.items():
+        if _is_blank(value):
+            continue
+        key_text = str(key).strip().lower()
+        if not any(token in key_text for token in field_tokens):
+            continue
+        if not any(token in key_text for token in role_tokens):
+            continue
+        if any(token in key_text for token in exclude):
+            continue
+        return value
+    return None
+
+
+def _split_endpoint(value: Any) -> tuple[str | None, str | None]:
+    if _is_blank(value):
+        return None, None
+    text = str(value).strip()
+    if not text:
+        return None, None
+
+    # Common form: "device:interface"
+    if ":" in text:
+        left, right = text.split(":", 1)
+        left = left.strip()
+        right = right.strip()
+        if left and right:
+            return left, right
+
+    # Common form: "device interface"
+    parts = text.split()
+    if len(parts) >= 2:
+        return parts[0].strip(), " ".join(parts[1:]).strip()
+
+    return None, None
+
+
 def _parse_vlan_id(value: Any) -> int | None:
     if _is_blank(value):
         return None
@@ -234,6 +279,59 @@ def _network_layout_from_frame(frame: pd.DataFrame) -> tuple[list[dict[str, Any]
             ],
         )
 
+        # Semantic fallback for non-standard headers (for example, A-side/B-side node/port).
+        if _is_blank(source_device):
+            source_device = _first_semantic(
+                row_dict,
+                role_tokens={"source", "src", "from", "a_side", "aside", "a_end", "device_a", "left", "origin", "start"},
+                field_tokens={"device", "host", "node", "switch", "server", "router"},
+                exclude_tokens={"destination", "dest", "to", "b_side", "b_end", "device_b", "right", "target", "end"},
+            )
+        if _is_blank(destination_device):
+            destination_device = _first_semantic(
+                row_dict,
+                role_tokens={"destination", "dest", "to", "b_side", "bside", "b_end", "device_b", "right", "target", "end"},
+                field_tokens={"device", "host", "node", "switch", "server", "router"},
+                exclude_tokens={"source", "src", "from", "a_side", "a_end", "device_a", "left", "origin", "start"},
+            )
+        if _is_blank(source_interface):
+            source_interface = _first_semantic(
+                row_dict,
+                role_tokens={"source", "src", "from", "a_side", "aside", "a_end", "interface_a", "port_a", "left", "origin", "start"},
+                field_tokens={"interface", "port", "intf", "nic", "adapter", "ethernet", "eth"},
+                exclude_tokens={"destination", "dest", "to", "b_side", "b_end", "interface_b", "port_b", "right", "target", "end"},
+            )
+        if _is_blank(destination_interface):
+            destination_interface = _first_semantic(
+                row_dict,
+                role_tokens={"destination", "dest", "to", "b_side", "bside", "b_end", "interface_b", "port_b", "right", "target", "end"},
+                field_tokens={"interface", "port", "intf", "nic", "adapter", "ethernet", "eth"},
+                exclude_tokens={"source", "src", "from", "a_side", "a_end", "interface_a", "port_a", "left", "origin", "start"},
+            )
+
+        # Endpoint-string fallback such as "from endpoint" -> "leaf-01:Eth1/1".
+        if any(_is_blank(value) for value in [source_device, source_interface]):
+            from_endpoint = _first_present(
+                row_dict,
+                ["from", "from_endpoint", "source_endpoint", "a_endpoint", "endpoint_a"],
+            )
+            parsed_device, parsed_interface = _split_endpoint(from_endpoint)
+            if _is_blank(source_device) and parsed_device is not None:
+                source_device = parsed_device
+            if _is_blank(source_interface) and parsed_interface is not None:
+                source_interface = parsed_interface
+
+        if any(_is_blank(value) for value in [destination_device, destination_interface]):
+            to_endpoint = _first_present(
+                row_dict,
+                ["to", "to_endpoint", "destination_endpoint", "b_endpoint", "endpoint_b"],
+            )
+            parsed_device, parsed_interface = _split_endpoint(to_endpoint)
+            if _is_blank(destination_device) and parsed_device is not None:
+                destination_device = parsed_device
+            if _is_blank(destination_interface) and parsed_interface is not None:
+                destination_interface = parsed_interface
+
         if not any(
             _is_blank(value)
             for value in [
@@ -284,11 +382,7 @@ def parse_network_layout_workbook(path_str: str) -> dict[str, list[dict[str, Any
     vlans: list[dict[str, Any]] = []
     cables: list[dict[str, Any]] = []
 
-    for sheet_name, frame in workbook.items():
-        lower_name = str(sheet_name).strip().lower()
-        if not any(token in lower_name for token in {"network", "layout", "cable", "vlan", "l2", "fabric"}):
-            continue
-
+    def _accumulate_from_sheet(frame: pd.DataFrame) -> None:
         sheet_vlans, sheet_cables = _network_layout_from_frame(frame)
         for vlan in sheet_vlans:
             key = (int(vlan["vid"]), str(vlan.get("site") or ""))
@@ -314,6 +408,21 @@ def parse_network_layout_workbook(path_str: str) -> dict[str, list[dict[str, Any
                 continue
             cable_seen.add(key)
             cables.append(cable)
+
+    preferred_tokens = {"network", "layout", "cable", "vlan", "l2", "fabric"}
+    preferred_frames = [
+        frame
+        for sheet_name, frame in workbook.items()
+        if any(token in str(sheet_name).strip().lower() for token in preferred_tokens)
+    ]
+
+    for frame in preferred_frames:
+        _accumulate_from_sheet(frame)
+
+    # If sheet names are unconventional, fall back to scanning all sheets.
+    if not vlans and not cables:
+        for frame in workbook.values():
+            _accumulate_from_sheet(frame)
 
     return {"vlans": vlans, "cables": cables}
 
@@ -375,23 +484,36 @@ def parse_deployment_intent_workbook(path_str: str) -> dict[str, Any]:
     workbook = pd.read_excel(path, sheet_name=None)
     name_tokens = {"bom", "bill", "materials", "intent", "deployment"}
 
-    for sheet_name, frame in workbook.items():
-        lower_name = str(sheet_name).strip().lower()
-        if not any(token in lower_name for token in name_tokens):
-            continue
-
+    def _parse_intent_frame(frame: pd.DataFrame) -> dict[str, Any] | None:
         candidate = _sheet_to_key_value(frame)
         if not candidate:
             candidate = _sheet_to_row_record(frame)
         if not candidate:
-            continue
+            return None
 
         normalized = _normalize_record(candidate)
         if "gpu_model" not in normalized:
-            continue
+            return None
 
         model = DeploymentIntent.model_validate(normalized)
         return model.model_dump(mode="python")
+
+    preferred_frames = [
+        frame
+        for sheet_name, frame in workbook.items()
+        if any(token in str(sheet_name).strip().lower() for token in name_tokens)
+    ]
+
+    for frame in preferred_frames:
+        parsed = _parse_intent_frame(frame)
+        if parsed is not None:
+            return parsed
+
+    # Fallback for workbooks that hide BOM on non-standard sheet names.
+    for frame in workbook.values():
+        parsed = _parse_intent_frame(frame)
+        if parsed is not None:
+            return parsed
 
     raise ValueError(
         "No BOM sheet with deployment intent fields found. "
@@ -433,34 +555,42 @@ def _read_csv(path: Path) -> dict[str, Any]:
 
 def _read_xlsx(path: Path) -> dict[str, Any]:
     workbook = pd.read_excel(path, sheet_name=None)
+    best_raw: dict[str, Any] = {}
+    best_score = -1
+
+    score_markers = {
+        "loading_dock",
+        "server_lift",
+        "rack_floor_psf",
+        "available_power_kw",
+        "available_cooling_kw",
+        "vlan_ids",
+        "gpu_model",
+        "node_count",
+        "deployment_name",
+        "customer_name",
+        "project_name",
+        "site_name",
+        "workload_name",
+        "gpu_model_preference",
+        "desired_node_count",
+    }
+
     for frame in workbook.values():
         if frame.empty:
             continue
 
-        cols = [str(col).strip().lower() for col in frame.columns]
-        if {"field", "value"}.issubset(set(cols)):
-            key_col = frame.columns[cols.index("field")]
-            value_col = frame.columns[cols.index("value")]
-            parsed = {
-                str(row[key_col]).strip(): row[value_col]
-                for _, row in frame.iterrows()
-                if str(row[key_col]).strip() and str(row[key_col]).strip().lower() != "nan"
-            }
-            if parsed:
-                return parsed
+        candidate = _sheet_to_key_value(frame)
+        if not candidate:
+            continue
 
-        if len(frame.columns) >= 2:
-            key_col = frame.columns[0]
-            value_col = frame.columns[1]
-            parsed = {
-                str(row[key_col]).strip(): row[value_col]
-                for _, row in frame.iterrows()
-                if str(row[key_col]).strip() and str(row[key_col]).strip().lower() != "nan"
-            }
-            if parsed:
-                return parsed
+        normalized = _normalize_record(candidate)
+        score = len(score_markers.intersection(set(normalized.keys())))
+        if score > best_score:
+            best_score = score
+            best_raw = candidate
 
-    return {}
+    return best_raw
 
 
 def read_key_value_file(path_str: str) -> dict[str, Any]:

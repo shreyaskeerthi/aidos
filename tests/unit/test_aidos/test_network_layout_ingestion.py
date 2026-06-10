@@ -223,3 +223,127 @@ def test_ingest_inputs_uses_bom_sheet_from_excel_path(tmp_path: Path, monkeypatc
     assert bundle.intent.deployment_name == "bom-intake"
     assert bundle.intent.gpu_model == "B200"
     assert bundle.intent.node_count == 2
+
+
+def test_parse_network_layout_workbook_falls_back_when_sheet_name_nonstandard(
+    tmp_path: Path, monkeypatch
+) -> None:
+    workbook_path = tmp_path / "fakedata.xlsx"
+    workbook_path.write_text("placeholder", encoding="utf-8")
+
+    monkeypatch.setattr(
+        pd,
+        "read_excel",
+        lambda *_args, **_kwargs: {
+            "Topology Matrix": pd.DataFrame(
+                [
+                    {
+                        "VLAN ID": 3103,
+                        "VLAN Name": "ops",
+                    },
+                    {
+                        "Source Device": "leaf-01",
+                        "Source Interface": "Eth1/11",
+                        "Destination Device": "spine-01",
+                        "Destination Interface": "Eth1/49",
+                    },
+                ]
+            )
+        },
+    )
+
+    parsed = parse_network_layout_workbook(str(workbook_path))
+
+    assert len(parsed["vlans"]) == 1
+    assert parsed["vlans"][0]["vid"] == 3103
+    assert len(parsed["cables"]) == 1
+    assert parsed["cables"][0]["source_device"] == "leaf-01"
+
+
+def test_parse_deployment_intent_workbook_falls_back_when_sheet_name_nonstandard(
+    tmp_path: Path, monkeypatch
+) -> None:
+    workbook_path = tmp_path / "fakedata.xlsx"
+    workbook_path.write_text("placeholder", encoding="utf-8")
+
+    monkeypatch.setattr(
+        pd,
+        "read_excel",
+        lambda *_args, **_kwargs: {
+            "Sheet Alpha": pd.DataFrame([{"Field": "note", "Value": "ignore"}]),
+            "Planning Inputs": pd.DataFrame(
+                [
+                    {"Field": "deployment_name", "Value": "adaptive-bom"},
+                    {"Field": "gpu_model", "Value": "H100"},
+                    {"Field": "node_count", "Value": 6},
+                ]
+            ),
+        },
+    )
+
+    parsed = parse_deployment_intent_workbook(str(workbook_path))
+    assert parsed["deployment_name"] == "adaptive-bom"
+    assert parsed["gpu_model"] == "H100"
+    assert parsed["node_count"] == 6
+
+
+def test_parse_network_layout_workbook_extracts_cables_from_a_b_side_headers(
+    tmp_path: Path, monkeypatch
+) -> None:
+    workbook_path = tmp_path / "fakedata.xlsx"
+    workbook_path.write_text("placeholder", encoding="utf-8")
+
+    monkeypatch.setattr(
+        pd,
+        "read_excel",
+        lambda *_args, **_kwargs: {
+            "Sheet1": pd.DataFrame(
+                [
+                    {
+                        "A-side node": "leaf-01",
+                        "A-side port": "Eth1/1",
+                        "B-side node": "spine-01",
+                        "B-side port": "Eth1/49",
+                    }
+                ]
+            )
+        },
+    )
+
+    parsed = parse_network_layout_workbook(str(workbook_path))
+
+    assert len(parsed["cables"]) == 1
+    assert parsed["cables"][0]["source_device"] == "leaf-01"
+    assert parsed["cables"][0]["source_interface"] == "Eth1/1"
+    assert parsed["cables"][0]["destination_device"] == "spine-01"
+    assert parsed["cables"][0]["destination_interface"] == "Eth1/49"
+
+
+def test_parse_network_layout_workbook_extracts_cables_from_endpoint_strings(
+    tmp_path: Path, monkeypatch
+) -> None:
+    workbook_path = tmp_path / "fakedata.xlsx"
+    workbook_path.write_text("placeholder", encoding="utf-8")
+
+    monkeypatch.setattr(
+        pd,
+        "read_excel",
+        lambda *_args, **_kwargs: {
+            "Sheet1": pd.DataFrame(
+                [
+                    {
+                        "From Endpoint": "leaf-02:Eth1/2",
+                        "To Endpoint": "spine-02:Eth1/50",
+                    }
+                ]
+            )
+        },
+    )
+
+    parsed = parse_network_layout_workbook(str(workbook_path))
+
+    assert len(parsed["cables"]) == 1
+    assert parsed["cables"][0]["source_device"] == "leaf-02"
+    assert parsed["cables"][0]["source_interface"] == "Eth1/2"
+    assert parsed["cables"][0]["destination_device"] == "spine-02"
+    assert parsed["cables"][0]["destination_interface"] == "Eth1/50"
