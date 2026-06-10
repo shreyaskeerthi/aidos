@@ -6,7 +6,7 @@ from dataclasses import dataclass
 from datetime import datetime, timezone
 from typing import Any
 
-from aidos.parsers import read_key_value_file
+from aidos.parsers import parse_network_layout_workbook, read_key_value_file
 from aidos.schemas import (
     DeploymentIntent,
     Evidence,
@@ -24,6 +24,7 @@ class IntakeBundle:
     survey: SiteSurvey
     intent: DeploymentIntent
     workload: WorkloadProfile | None
+    network_layout: dict[str, list[dict[str, Any]]] | None
     normalized_inputs: dict[str, dict[str, Any]]
     provenance: list[Evidence]
 
@@ -60,6 +61,7 @@ def ingest_inputs(
     bom_path: str | None = None,
     workload_path: str | None = None,
     context_path: str | None = None,
+    network_layout_path: str | None = None,
 ) -> IntakeBundle:
     """Ingest intake artifacts supporting BOM and no-BOM starting conditions."""
 
@@ -84,6 +86,11 @@ def ingest_inputs(
         raise ValueError("Provide either bom_path or workload_path.")
 
     context_raw = read_key_value_file(context_path) if context_path else {}
+    network_layout = (
+        parse_network_layout_workbook(network_layout_path)
+        if network_layout_path
+        else None
+    )
     project = ProjectContext.model_validate(context_raw or {})
 
     provenance = [
@@ -93,6 +100,8 @@ def ingest_inputs(
     ]
     if workload_raw is not None:
         provenance.append(_ev("intake.workload", workload_raw, "read_key_value_file"))
+    if network_layout is not None:
+        provenance.append(_ev("intake.network_layout", network_layout, "parse_network_layout_workbook"))
 
     normalized_inputs = {
         "survey": survey_raw,
@@ -101,12 +110,18 @@ def ingest_inputs(
     }
     if workload_raw is not None:
         normalized_inputs["workload"] = workload_raw
+    if network_layout is not None:
+        normalized_inputs["network_layout"] = {
+            "vlans": network_layout.get("vlans", []),
+            "cables": network_layout.get("cables", []),
+        }
 
     return IntakeBundle(
         project=project,
         survey=survey,
         intent=intent,
         workload=workload,
+        network_layout=network_layout,
         normalized_inputs=normalized_inputs,
         provenance=provenance,
     )

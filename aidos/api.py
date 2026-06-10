@@ -69,6 +69,7 @@ class FlowRequest(BaseModel):
     workload_path: str | None = None
     pyats_testbed_path: str | None = None
     context_path: str | None = None
+    network_layout_path: str | None = None
     observed_path: str | None = None
     sync_netbox: bool = False
     execute: bool = False
@@ -106,6 +107,7 @@ class ProjectFlowRequest(BaseModel):
     workload_path: str | None = None
     pyats_testbed_path: str | None = None
     context_path: str | None = None
+    network_layout_path: str | None = None
     observed_path: str | None = None
     sync_netbox: bool = False
     execute: bool = False
@@ -364,6 +366,7 @@ def project_flow(project_id: str, payload: ProjectFlowRequest) -> dict:
             workload_path=workload_path,
             pyats_testbed_path=payload.pyats_testbed_path,
             context_path=context_path,
+            network_layout_path=payload.network_layout_path,
             observed_path=payload.observed_path,
             sync_netbox=payload.sync_netbox,
             execute=payload.execute,
@@ -425,6 +428,7 @@ def flow(payload: FlowRequest) -> dict:
             workload_path=payload.workload_path,
             pyats_testbed_path=payload.pyats_testbed_path,
             context_path=payload.context_path,
+            network_layout_path=payload.network_layout_path,
             observed_path=payload.observed_path,
             sync_netbox=payload.sync_netbox,
             execute=payload.execute,

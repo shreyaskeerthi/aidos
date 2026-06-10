@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import csv
 import json
+import re
 from pathlib import Path
 from typing import Any
 
@@ -126,6 +127,186 @@ def _normalize_record(record: dict[str, Any]) -> dict[str, Any]:
             normalized[key] = _parse_list(normalized[key])
 
     return normalized
+
+
+def _canonical_col_name(value: str) -> str:
+    normalized = re.sub(r"[^a-z0-9]+", "_", value.strip().lower())
+    return normalized.strip("_")
+
+
+def _is_blank(value: Any) -> bool:
+    if value is None:
+        return True
+    if isinstance(value, str):
+        return not value.strip()
+    return bool(pd.isna(value))
+
+
+def _first_present(row: dict[str, Any], keys: list[str]) -> Any:
+    for key in keys:
+        value = row.get(key)
+        if not _is_blank(value):
+            return value
+    return None
+
+
+def _parse_vlan_id(value: Any) -> int | None:
+    if _is_blank(value):
+        return None
+    text = str(value).strip()
+    if text.isdigit():
+        return int(text)
+    match = re.search(r"\d+", text)
+    if match:
+        return int(match.group(0))
+    return None
+
+
+def _network_layout_from_frame(frame: pd.DataFrame) -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
+    if frame.empty:
+        return [], []
+
+    col_map = {col: _canonical_col_name(str(col)) for col in frame.columns}
+    normalized = frame.rename(columns=col_map)
+
+    vlan_entries: list[dict[str, Any]] = []
+    cable_entries: list[dict[str, Any]] = []
+
+    for _, row in normalized.iterrows():
+        row_dict = row.to_dict()
+
+        vlan_id = _parse_vlan_id(
+            _first_present(row_dict, ["vlan_id", "vid", "vlan", "vlanid"])
+        )
+        if vlan_id is not None:
+            vlan_name = _first_present(row_dict, ["vlan_name", "name", "segment", "network"])
+            site = _first_present(row_dict, ["site", "site_slug", "location"])
+            prefix = _first_present(row_dict, ["prefix", "subnet", "cidr"])
+            vrf = _first_present(row_dict, ["vrf", "vrf_name"])
+            vlan_entries.append(
+                {
+                    "vid": vlan_id,
+                    "name": str(vlan_name).strip() if not _is_blank(vlan_name) else f"vlan-{vlan_id}",
+                    "site": str(site).strip() if not _is_blank(site) else None,
+                    "prefix": str(prefix).strip() if not _is_blank(prefix) else None,
+                    "vrf": str(vrf).strip() if not _is_blank(vrf) else None,
+                }
+            )
+
+        source_device = _first_present(
+            row_dict,
+            ["source_device", "from_device", "a_device", "device_a", "device_1"],
+        )
+        source_interface = _first_present(
+            row_dict,
+            [
+                "source_interface",
+                "from_interface",
+                "a_interface",
+                "interface_a",
+                "source_port",
+                "port_a",
+            ],
+        )
+        destination_device = _first_present(
+            row_dict,
+            ["destination_device", "dest_device", "to_device", "b_device", "device_b", "device_2"],
+        )
+        destination_interface = _first_present(
+            row_dict,
+            [
+                "destination_interface",
+                "dest_interface",
+                "to_interface",
+                "b_interface",
+                "interface_b",
+                "destination_port",
+                "port_b",
+            ],
+        )
+
+        if not any(
+            _is_blank(value)
+            for value in [
+                source_device,
+                source_interface,
+                destination_device,
+                destination_interface,
+            ]
+        ):
+            cable_entries.append(
+                {
+                    "source_device": str(source_device).strip(),
+                    "source_interface": str(source_interface).strip(),
+                    "destination_device": str(destination_device).strip(),
+                    "destination_interface": str(destination_interface).strip(),
+                    "type": str(_first_present(row_dict, ["cable_type", "media", "type"]) or "cat6").strip(),
+                    "status": str(_first_present(row_dict, ["status", "link_status"]) or "connected").strip(),
+                    "label": str(
+                        _first_present(row_dict, ["label", "cable_id", "cable_label"])
+                        or (
+                            f"{str(source_device).strip()}:{str(source_interface).strip()}"
+                            f"<->{str(destination_device).strip()}:{str(destination_interface).strip()}"
+                        )
+                    ).strip(),
+                }
+            )
+
+    return vlan_entries, cable_entries
+
+
+def parse_network_layout_workbook(path_str: str) -> dict[str, list[dict[str, Any]]]:
+    """Extract VLAN and cable rows from workbook sheets.
+
+    The parser is intentionally permissive with sheet names and header aliases so
+    real-world design workbooks can be ingested without strict templates.
+    """
+
+    path = Path(path_str)
+    if not path.exists():
+        raise FileNotFoundError(f"Input file not found: {path}")
+    if path.suffix.lower() not in {".xlsx", ".xlsm", ".xls"}:
+        raise ValueError("Network layout workbook must be an Excel file (.xlsx/.xlsm/.xls)")
+
+    workbook = pd.read_excel(path, sheet_name=None)
+
+    vlan_seen: set[tuple[int, str]] = set()
+    cable_seen: set[tuple[str, str, str, str]] = set()
+    vlans: list[dict[str, Any]] = []
+    cables: list[dict[str, Any]] = []
+
+    for sheet_name, frame in workbook.items():
+        lower_name = str(sheet_name).strip().lower()
+        if not any(token in lower_name for token in {"network", "layout", "cable", "vlan", "l2", "fabric"}):
+            continue
+
+        sheet_vlans, sheet_cables = _network_layout_from_frame(frame)
+        for vlan in sheet_vlans:
+            key = (int(vlan["vid"]), str(vlan.get("site") or ""))
+            if key in vlan_seen:
+                continue
+            vlan_seen.add(key)
+            vlans.append(vlan)
+
+        for cable in sheet_cables:
+            key = (
+                cable["source_device"],
+                cable["source_interface"],
+                cable["destination_device"],
+                cable["destination_interface"],
+            )
+            reverse_key = (
+                cable["destination_device"],
+                cable["destination_interface"],
+                cable["source_device"],
+                cable["source_interface"],
+            )
+            if key in cable_seen or reverse_key in cable_seen:
+                continue
+            cable_seen.add(key)
+            cables.append(cable)
+
+    return {"vlans": vlans, "cables": cables}
 
 
 def _read_json(path: Path) -> dict[str, Any]:

@@ -201,6 +201,7 @@ class NetBoxPayload(BaseModel):
     devices: list[dict[str, Any]] = Field(default_factory=list)
     vlans: list[dict[str, Any]] = Field(default_factory=list)
     prefixes: list[dict[str, Any]] = Field(default_factory=list)
+    cables: list[dict[str, Any]] = Field(default_factory=list)
 
 
 class RunbookTask(BaseModel):

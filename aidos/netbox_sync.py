@@ -204,6 +204,38 @@ class NetBoxClient:
         object_id = created.get("id")
         return object_id if isinstance(object_id, int) else None
 
+    def _interface_id_by_device_and_name(self, device_id: int, interface_name: str) -> int | None:
+        data = self._request(
+            "GET",
+            "/api/dcim/interfaces/",
+            params={"device_id": device_id, "name": interface_name, "limit": 1},
+        )
+        results = data.get("results", [])
+        if isinstance(results, list) and results:
+            first = results[0]
+            if isinstance(first, dict):
+                object_id = first.get("id")
+                if isinstance(object_id, int):
+                    return object_id
+        return None
+
+    def _ensure_interface(self, device_name: str, interface_name: str) -> int | None:
+        device_id = self._find_id("/api/dcim/devices/", "name", device_name)
+        if device_id is None:
+            return None
+
+        existing_interface_id = self._interface_id_by_device_and_name(device_id, interface_name)
+        if existing_interface_id is not None:
+            return existing_interface_id
+
+        created = self._request(
+            "POST",
+            "/api/dcim/interfaces/",
+            payload={"device": device_id, "name": interface_name, "type": "1000base-t"},
+        )
+        object_id = created.get("id")
+        return object_id if isinstance(object_id, int) else None
+
     def _site_id_from_value(self, value: Any) -> int | None:
         if isinstance(value, int):
             return value
@@ -302,6 +334,36 @@ class NetBoxClient:
                 else:
                     prepared.pop("vrf", None)
 
+        elif endpoint == "/api/dcim/cables/":
+            src_device = str(prepared.get("source_device") or "").strip()
+            src_interface = str(prepared.get("source_interface") or "").strip()
+            dst_device = str(prepared.get("destination_device") or "").strip()
+            dst_interface = str(prepared.get("destination_interface") or "").strip()
+
+            if src_device and src_interface and dst_device and dst_interface:
+                a_intf_id = self._ensure_interface(src_device, src_interface)
+                b_intf_id = self._ensure_interface(dst_device, dst_interface)
+                if a_intf_id is not None and b_intf_id is not None:
+                    prepared["a_terminations"] = [
+                        {"object_type": "dcim.interface", "object_id": a_intf_id}
+                    ]
+                    prepared["b_terminations"] = [
+                        {"object_type": "dcim.interface", "object_id": b_intf_id}
+                    ]
+
+            prepared["status"] = str(prepared.get("status") or "connected")
+            prepared["type"] = str(prepared.get("type") or "cat6")
+
+            if not prepared.get("label"):
+                prepared["label"] = (
+                    f"{src_device}:{src_interface}<->{dst_device}:{dst_interface}"
+                )
+
+            prepared.pop("source_device", None)
+            prepared.pop("source_interface", None)
+            prepared.pop("destination_device", None)
+            prepared.pop("destination_interface", None)
+
         return prepared
 
     def upsert_payload(self, payload: NetBoxPayload) -> dict[str, Any]:
@@ -316,6 +378,7 @@ class NetBoxClient:
                 "devices": [],
                 "vlans": [],
                 "prefixes": [],
+                "cables": [],
             },
         }
 
@@ -350,6 +413,8 @@ class NetBoxClient:
             _safe_upsert("vlans", "/api/ipam/vlans/", "name", vlan)
         for prefix in payload.prefixes:
             _safe_upsert("prefixes", "/api/ipam/prefixes/", "prefix", prefix)
+        for cable in payload.cables:
+            _safe_upsert("cables", "/api/dcim/cables/", "label", cable)
 
         if had_errors:
             result["status"] = "applied_with_errors" if not self.dry_run else "dry_run_with_errors"
@@ -357,7 +422,10 @@ class NetBoxClient:
         return result
 
 
-def build_netbox_payload(sot: CanonicalSoT) -> NetBoxPayload:
+def build_netbox_payload(
+    sot: CanonicalSoT,
+    network_layout: dict[str, list[dict[str, Any]]] | None = None,
+) -> NetBoxPayload:
     """Map canonical SoT into NetBox-friendly intent payloads."""
     site_slug = (sot.project.site_name or sot.project.project_name).lower().replace(" ", "-")
     deployment = sot.intent.deployment_name
@@ -383,6 +451,86 @@ def build_netbox_payload(sot: CanonicalSoT) -> NetBoxPayload:
             }
         )
 
+    base_vlans = [
+        {
+            "name": f"{deployment}-vlan-{vlan}",
+            "vid": int(vlan) if str(vlan).isdigit() else vlan,
+            "site": site_slug,
+        }
+        for vlan in (sot.site.vlan_ids or sot.intent.required_vlans)
+    ]
+
+    layout_vlans: list[dict[str, Any]] = []
+    layout_prefixes: list[dict[str, Any]] = []
+    layout_cables: list[dict[str, Any]] = []
+
+    if network_layout is not None:
+        for vlan in network_layout.get("vlans", []):
+            vid = vlan.get("vid")
+            if vid is None:
+                continue
+            site = vlan.get("site") or site_slug
+            name = vlan.get("name") or f"{deployment}-vlan-{vid}"
+            layout_vlans.append(
+                {
+                    "name": str(name),
+                    "vid": int(vid) if str(vid).isdigit() else vid,
+                    "site": str(site),
+                }
+            )
+            if vlan.get("prefix"):
+                layout_prefixes.append(
+                    {
+                        "prefix": str(vlan["prefix"]),
+                        "site": str(site),
+                        "vrf": str(vlan.get("vrf") or f"{deployment}-vrf"),
+                        "status": "planned",
+                    }
+                )
+
+        for cable in network_layout.get("cables", []):
+            src_device = cable.get("source_device")
+            src_interface = cable.get("source_interface")
+            dst_device = cable.get("destination_device")
+            dst_interface = cable.get("destination_interface")
+            if not all([src_device, src_interface, dst_device, dst_interface]):
+                continue
+            layout_cables.append(
+                {
+                    "source_device": str(src_device),
+                    "source_interface": str(src_interface),
+                    "destination_device": str(dst_device),
+                    "destination_interface": str(dst_interface),
+                    "type": str(cable.get("type") or "cat6"),
+                    "status": str(cable.get("status") or "connected"),
+                    "label": str(
+                        cable.get("label")
+                        or f"{src_device}:{src_interface}<->{dst_device}:{dst_interface}"
+                    ),
+                }
+            )
+
+    vlan_by_site_vid: dict[tuple[str, str], dict[str, Any]] = {}
+    for vlan in [*base_vlans, *layout_vlans]:
+        key = (str(vlan.get("site") or site_slug), str(vlan.get("vid")))
+        vlan_by_site_vid[key] = vlan
+
+    prefixes = [
+        {
+            "prefix": "10.100.0.0/24",
+            "site": site_slug,
+            "vrf": f"{deployment}-vrf",
+            "status": "planned",
+        }
+    ]
+    if layout_prefixes:
+        seen_prefixes = {item["prefix"] for item in prefixes}
+        for item in layout_prefixes:
+            if item["prefix"] in seen_prefixes:
+                continue
+            seen_prefixes.add(item["prefix"])
+            prefixes.append(item)
+
     return NetBoxPayload(
         sites=[
             {
@@ -401,20 +549,7 @@ def build_netbox_payload(sot: CanonicalSoT) -> NetBoxPayload:
             }
         ],
         devices=devices,
-        vlans=[
-            {
-                "name": f"{deployment}-vlan-{vlan}",
-                "vid": int(vlan) if str(vlan).isdigit() else vlan,
-                "site": site_slug,
-            }
-            for vlan in (sot.site.vlan_ids or sot.intent.required_vlans)
-        ],
-        prefixes=[
-            {
-                "prefix": "10.100.0.0/24",
-                "site": site_slug,
-                "vrf": f"{deployment}-vrf",
-                "status": "planned",
-            }
-        ],
+        vlans=list(vlan_by_site_vid.values()),
+        prefixes=prefixes,
+        cables=layout_cables,
     )

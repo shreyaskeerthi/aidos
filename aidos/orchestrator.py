@@ -122,6 +122,7 @@ def run_mvp_workflow(
     workload_path: str | None = None,
     pyats_testbed_path: str | None = None,
     context_path: str | None = None,
+    network_layout_path: str | None = None,
     observed_path: str | None = None,
     sync_netbox: bool = False,
     execute: bool = False,
@@ -147,11 +148,12 @@ def run_mvp_workflow(
         bom_path=bom_path,
         workload_path=workload_path,
         context_path=context_path,
+        network_layout_path=network_layout_path,
     )
     sot = build_canonical_sot(bundle)
 
     validation_report, missing_data_report = validate_sot(sot, observed_path=observed_path)
-    netbox_payload = build_netbox_payload(sot)
+    netbox_payload = build_netbox_payload(sot, network_layout=bundle.network_layout)
 
     sync_result: dict[str, Any] | None = None
     if sync_netbox:

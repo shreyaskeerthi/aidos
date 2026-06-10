@@ -3,6 +3,8 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
+import aidos.chat as chat_module
+
 from aidos.chat import converse, get_session
 from aidos.execution import ApprovalStore
 from aidos.netbox_sync import NetBoxClient
@@ -39,6 +41,39 @@ def test_chat_session_is_persistent(tmp_path: Path) -> None:
     session = get_session("ops-session", str(out))
     assert session.get("session_id") == "ops-session"
     assert len(session.get("turns", [])) >= 2
+
+
+def test_chat_uses_nemotron_when_key_present(tmp_path: Path, monkeypatch) -> None:
+    out = tmp_path / "outputs"
+    latest = out / "latest"
+    latest.mkdir(parents=True, exist_ok=True)
+    (latest / "validation_report.json").write_text(
+        json.dumps({"readiness": "ready", "summary": "northline is healthy"}),
+        encoding="utf-8",
+    )
+
+    monkeypatch.setenv("NVIDIA_API_KEY", "nvapi-test")
+
+    def fake_grounding(_output_dir: str, _message: str):
+        return chat_module.ChatAnswer(
+            message="Grounded matches from NeMoSys artifacts:\n\nvalidation_report.json: northline is healthy",
+            cited_artifacts=["validation_report.json"],
+            proposed_actions=["Inspect validation report"],
+        )
+
+    def fake_nemotron(_output_dir: str, _session_id: str, _message: str):
+        return chat_module.ChatAnswer(
+            message="Nemotron says northline is ready.",
+            cited_artifacts=["validation_report.json"],
+            proposed_actions=["Inspect validation report"],
+        )
+
+    monkeypatch.setattr(chat_module, "_artifact_context", fake_grounding)
+    monkeypatch.setattr(chat_module, "_ask_nemotron", fake_nemotron)
+
+    answer = converse("is northline ready?", str(out), session_id="nemotron-session")
+    assert answer.message == "Nemotron says northline is ready."
+    assert answer.cited_artifacts == ["validation_report.json"]
 
 
 def test_netbox_client_dry_run_reconciliation() -> None:
