@@ -10,7 +10,7 @@ from fastapi import FastAPI, File, HTTPException, UploadFile
 from fastapi.responses import FileResponse, HTMLResponse
 
 from aidos.chat import converse, get_session
-from aidos.parsers import read_key_value_file
+from aidos.parsers import parse_network_layout_workbook, read_key_value_file
 from aidos.orchestrator import (
     get_task_approval,
     list_task_approvals,
@@ -315,6 +315,24 @@ def _reclassify_uploaded_inputs(paths: dict[str, str | None]) -> tuple[dict[str,
     return corrected, remapped
 
 
+def _detect_network_layout_path(paths: dict[str, str | None]) -> str | None:
+    """Return the first uploaded Excel file that parses as a network layout workbook."""
+    for key in ["survey_path", "bom_path", "workload_path", "context_path"]:
+        candidate = paths.get(key)
+        if not candidate:
+            continue
+        suffix = Path(candidate).suffix.lower()
+        if suffix not in {".xlsx", ".xlsm", ".xls"}:
+            continue
+        try:
+            parsed = parse_network_layout_workbook(candidate)
+        except Exception:
+            continue
+        if parsed.get("vlans") or parsed.get("cables"):
+            return candidate
+    return None
+
+
 @app.post("/v1/projects/{project_id}/intake/upload")
 def project_upload_inputs(
     project_id: str,
@@ -322,6 +340,7 @@ def project_upload_inputs(
     bom: UploadFile | None = File(default=None),
     workload: UploadFile | None = File(default=None),
     context: UploadFile | None = File(default=None),
+    replace_existing: bool = True,
 ) -> dict:
     project = _require_project(project_id)
     intake_dir = Path(project["output_dir"]) / "intake"
@@ -333,18 +352,33 @@ def project_upload_inputs(
         "context_path": _save_upload(intake_dir, context, "context"),
     }
     corrected_paths, remapped = _reclassify_uploaded_inputs(paths)
+    detected_network_layout_path = _detect_network_layout_path(corrected_paths)
 
     state_path = Path(project["output_dir"]) / "state" / "latest_inputs.json"
     latest = JsonStateStore(state_path).read()
+    if replace_existing:
+        latest.update(
+            {
+                "survey_path": None,
+                "bom_path": None,
+                "workload_path": None,
+                "context_path": None,
+                "network_layout_path": None,
+            }
+        )
     for key, value in corrected_paths.items():
         if value:
             latest[key] = value
+    if detected_network_layout_path:
+        latest["network_layout_path"] = detected_network_layout_path
     JsonStateStore(state_path).write(latest)
 
     return {
         "project_id": project_id,
         "saved": latest,
         "remapped": remapped,
+        "replace_existing": replace_existing,
+        "detected_network_layout_path": detected_network_layout_path,
     }
 
 
@@ -358,6 +392,16 @@ def project_flow(project_id: str, payload: ProjectFlowRequest) -> dict:
     workload_path = payload.workload_path or latest.get("workload_path")
     context_path = payload.context_path or latest.get("context_path")
     network_layout_path = payload.network_layout_path or latest.get("network_layout_path")
+
+    if not network_layout_path and survey_path:
+        suffix = Path(survey_path).suffix.lower()
+        if suffix in {".xlsx", ".xlsm", ".xls"}:
+            try:
+                parsed = parse_network_layout_workbook(survey_path)
+            except Exception:
+                parsed = {"vlans": [], "cables": []}
+            if parsed.get("vlans") or parsed.get("cables"):
+                network_layout_path = survey_path
 
     if not survey_path:
         raise HTTPException(
