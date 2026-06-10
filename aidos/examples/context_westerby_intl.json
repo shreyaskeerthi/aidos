@@ -1,0 +1,38 @@
+{
+  "customer_name": "Westerby International",
+  "project_name": "westerby-intl-ai-core",
+  "region": "emea-west",
+  "site_name": "westerby-intl-dc1",
+  "environment": "production",
+  "business_service": "global-fulfillment-ai",
+  "target_sla": "99.95%",
+  "availability_zone_strategy": "dual-fabric single-site with DR replication",
+  "security_requirements": [
+    "zero-trust-east-west-segmentation",
+    "signed-firmware-only",
+    "mfa-admin-access",
+    "full-audit-retention-365d"
+  ],
+  "network_architecture": {
+    "fabric": "leaf-spine",
+    "leaf_count": 2,
+    "spine_count": 2,
+    "uplink_profile": "8x100G",
+    "management_vlan": 3199,
+    "storage_vlan": 3103,
+    "service_vlans": [3101, 3102]
+  },
+  "compute_architecture": {
+    "cluster_role": "training-and-inference",
+    "rack_layout": "single-rack phase-1",
+    "node_profile": "8x H100 SXM nodes",
+    "orchestrator": "kubernetes",
+    "container_runtime": "containerd"
+  },
+  "operations": {
+    "change_window": "saturday-22:00-utc",
+    "rollback_strategy": "policy revert + staged drain",
+    "monitoring": ["prometheus", "grafana", "loki"],
+    "incident_severity_escalation": "sev1-15min"
+  }
+}

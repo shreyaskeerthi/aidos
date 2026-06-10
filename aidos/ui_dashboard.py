@@ -527,12 +527,20 @@ def render_operator_app_html() -> str:
                 <div class='warning-banner hidden' id='pyats-warning'>pyATS is not supported in this Windows browser/session. AIDOS will fall back to CLI-based health checks unless you run in Linux or WSL.</div>
                 <div class='row'>
                     <button onclick='fillDemoPaths()'>Use Demo Paths</button>
+                    <button onclick='fillWesterbyPaths()'>Use Westerby Paths</button>
                     <div id='flow-error' class='muted' style='align-self:center;'></div>
                 </div>
                 <div class='row'>
                     <label><input type='checkbox' id='sync-netbox'> Sync NetBox</label>
                     <label><input type='checkbox' id='execute-flow'> Execute</label>
                     <label><input type='checkbox' id='auto-approve'> Auto-approve</label>
+                </div>
+                <div class='row'>
+                    <input id='netbox-base-url' placeholder='NetBox base URL (optional, e.g. https://tenant.cloud.netboxapp.com)'>
+                    <input id='netbox-token' type='password' placeholder='NetBox token (optional, uses server env if blank)'>
+                </div>
+                <div class='row'>
+                    <label><input type='checkbox' id='netbox-dry-run'> NetBox dry run</label>
                 </div>
                 <button class='btn-primary' onclick='runFlow()'>Run Project Flow</button>
             </div>
@@ -782,6 +790,9 @@ def render_operator_app_html() -> str:
                 pyats_testbed_path: pyatsInput.value.trim() || null,
                 context_path: document.getElementById('context-path').value.trim() || null,
                 sync_netbox: document.getElementById('sync-netbox').checked,
+                netbox_base_url: document.getElementById('netbox-base-url').value.trim() || null,
+                netbox_token: document.getElementById('netbox-token').value.trim() || null,
+                netbox_dry_run: document.getElementById('netbox-dry-run').checked,
                 execute: document.getElementById('execute-flow').checked,
                 auto_approve: document.getElementById('auto-approve').checked,
             };
@@ -879,6 +890,16 @@ def render_operator_app_html() -> str:
             document.getElementById('bom-path').value = '';
             document.getElementById('context-path').value = '';
             addChat('system', 'Demo intake paths populated.');
+        }
+
+        function fillWesterbyPaths() {
+            document.getElementById('survey-path').value = 'aidos/examples/site_survey_westerby_intl.json';
+            document.getElementById('workload-path').value = '';
+            document.getElementById('bom-path').value = 'aidos/examples/bom_westerby_intl.yaml';
+            document.getElementById('context-path').value = 'aidos/examples/context_westerby_intl.json';
+            document.getElementById('sync-netbox').checked = true;
+            document.getElementById('execute-flow').checked = true;
+            addChat('system', 'Westerby International preset loaded (survey/bom/context + NetBox sync enabled).');
         }
 
         function closeWelcome() {

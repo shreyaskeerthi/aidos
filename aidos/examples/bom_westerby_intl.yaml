@@ -1,0 +1,9 @@
+deployment_name: westerby-intl-ai-core
+gpu_model: H100
+node_count: 8
+target_platform: Cisco AI Pod
+required_vlans:
+  - "3101"
+  - "3102"
+  - "3103"
+  - "3199"

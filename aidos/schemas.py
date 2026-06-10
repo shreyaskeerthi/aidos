@@ -143,6 +143,8 @@ class AidosValidationOutput(BaseModel):
 class ProjectContext(BaseModel):
     """Project/customer level metadata for canonical SoT."""
 
+    model_config = ConfigDict(extra="allow")
+
     customer_name: str = "unknown-customer"
     project_name: str = "aidos-project"
     region: str | None = None

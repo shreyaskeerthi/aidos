@@ -168,7 +168,17 @@ def run_mvp_workflow(
 
     runbook = build_runbook_plan(sot, validation_report, pyats_testbed_path=pyats_testbed_path)
     ansible_playbook = build_ansible_playbook(runbook)
-    ansible_bundle = build_ansible_bundle(runbook)
+    ansible_bundle = build_ansible_bundle(
+        runbook,
+        architecture={
+            "project": sot.project.model_dump(mode="json"),
+            "intent": sot.intent.model_dump(mode="json"),
+            "expected": sot.expected.model_dump(mode="json"),
+            "site": sot.site.model_dump(mode="json"),
+            "workload": sot.workload.model_dump(mode="json") if sot.workload else None,
+            "netbox_payload": netbox_payload.model_dump(mode="json"),
+        },
+    )
     task_graph = build_agentic_task_graph(runbook)
 
     execution_records: list[ExecutionRecord] = []
