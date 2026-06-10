@@ -392,3 +392,39 @@ def test_parse_network_layout_workbook_two_row_header_style_extracts_cables(
     assert parsed["cables"][0]["source_interface"] == "m1/9"
     assert parsed["cables"][0]["destination_device"] == "Leaf Switch A"
     assert parsed["cables"][0]["destination_interface"] == "m1/9"
+
+
+def test_build_netbox_payload_adds_devices_from_cable_endpoints() -> None:
+    from aidos.schemas import CanonicalSoT, DeploymentIntent, ExpectedTruth, ProjectContext, SiteSurvey
+    from aidos.netbox_sync import build_netbox_payload
+
+    site = SiteSurvey()
+    intent = DeploymentIntent(deployment_name="demo", gpu_model="H100", node_count=4)
+    expected = ExpectedTruth.from_inputs(site, intent)
+    sot = CanonicalSoT(
+        project=ProjectContext(project_name="demo", site_name="demo-site"),
+        intent=intent,
+        site=site,
+        expected=expected,
+    )
+
+    payload = build_netbox_payload(
+        sot,
+        network_layout={
+            "vlans": [],
+            "cables": [
+                {
+                    "source_device": "Spine Switch A",
+                    "source_interface": "m1/1",
+                    "destination_device": "Leaf Switch A",
+                    "destination_interface": "m1/1",
+                }
+            ],
+        },
+    )
+
+    device_names = {item["name"] for item in payload.devices}
+    assert "demo-node-1" in device_names
+    assert "Spine Switch A" in device_names
+    assert "Leaf Switch A" in device_names
+    assert len(payload.devices) >= 6

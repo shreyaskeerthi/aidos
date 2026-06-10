@@ -452,39 +452,39 @@ def parse_network_layout_workbook(path_str: str) -> dict[str, list[dict[str, Any
 
     workbook = pd.read_excel(path, sheet_name=None)
 
-    vlan_seen: set[tuple[int, str]] = set()
-    cable_seen: set[tuple[str, str, str, str]] = set()
-    vlans: list[dict[str, Any]] = []
-    cables: list[dict[str, Any]] = []
+    def _scan_workbook_frames(book: dict[Any, pd.DataFrame]) -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
+        vlan_seen: set[tuple[int, str]] = set()
+        cable_seen: set[tuple[str, str, str, str]] = set()
+        found_vlans: list[dict[str, Any]] = []
+        found_cables: list[dict[str, Any]] = []
 
-    def _accumulate_from_sheet(frame: pd.DataFrame) -> None:
-        sheet_vlans, sheet_cables = _network_layout_from_frame(frame)
-        for vlan in sheet_vlans:
-            key = (int(vlan["vid"]), str(vlan.get("site") or ""))
-            if key in vlan_seen:
-                continue
-            vlan_seen.add(key)
-            vlans.append(vlan)
+        def _accumulate_from_sheet(frame: pd.DataFrame) -> None:
+            sheet_vlans, sheet_cables = _network_layout_from_frame(frame)
+            for vlan in sheet_vlans:
+                key = (int(vlan["vid"]), str(vlan.get("site") or ""))
+                if key in vlan_seen:
+                    continue
+                vlan_seen.add(key)
+                found_vlans.append(vlan)
 
-        for cable in sheet_cables:
-            key = (
-                cable["source_device"],
-                cable["source_interface"],
-                cable["destination_device"],
-                cable["destination_interface"],
-            )
-            reverse_key = (
-                cable["destination_device"],
-                cable["destination_interface"],
-                cable["source_device"],
-                cable["source_interface"],
-            )
-            if key in cable_seen or reverse_key in cable_seen:
-                continue
-            cable_seen.add(key)
-            cables.append(cable)
+            for cable in sheet_cables:
+                key = (
+                    cable["source_device"],
+                    cable["source_interface"],
+                    cable["destination_device"],
+                    cable["destination_interface"],
+                )
+                reverse_key = (
+                    cable["destination_device"],
+                    cable["destination_interface"],
+                    cable["source_device"],
+                    cable["source_interface"],
+                )
+                if key in cable_seen or reverse_key in cable_seen:
+                    continue
+                cable_seen.add(key)
+                found_cables.append(cable)
 
-    def _scan_workbook_frames(book: dict[Any, pd.DataFrame]) -> None:
         preferred_tokens = {"network", "layout", "cable", "vlan", "l2", "fabric"}
         preferred_frames = [
             frame
@@ -495,19 +495,43 @@ def parse_network_layout_workbook(path_str: str) -> dict[str, list[dict[str, Any
         for frame in preferred_frames:
             _accumulate_from_sheet(frame)
 
-        if not vlans and not cables:
+        if not found_vlans and not found_cables:
             for frame in book.values():
                 _accumulate_from_sheet(frame)
 
-    _scan_workbook_frames(workbook)
+        return found_vlans, found_cables
 
-    # Many customer workbooks use two-row headers. Retry with header=1 if needed.
-    if not vlans and not cables:
-        try:
-            header1_workbook = pd.read_excel(path, sheet_name=None, header=1)
-            _scan_workbook_frames(header1_workbook)
-        except Exception:
-            pass
+    vlans, cables = _scan_workbook_frames(workbook)
+
+    # Many customer workbooks use two-row headers. Parse header=1 and choose richer cable extraction.
+    try:
+        header1_workbook = pd.read_excel(path, sheet_name=None, header=1)
+        vlans_h1, cables_h1 = _scan_workbook_frames(header1_workbook)
+
+        endpoints_h0 = {
+            str(item.get("source_device", "")) for item in cables
+        } | {
+            str(item.get("destination_device", "")) for item in cables
+        }
+        endpoints_h1 = {
+            str(item.get("source_device", "")) for item in cables_h1
+        } | {
+            str(item.get("destination_device", "")) for item in cables_h1
+        }
+
+        # Prefer header=1 parsing when it yields more distinct endpoints.
+        if len(endpoints_h1) > len(endpoints_h0):
+            cables = cables_h1
+            if len(vlans_h1) >= len(vlans):
+                vlans = vlans_h1
+        elif (not cables) and cables_h1:
+            cables = cables_h1
+            if vlans_h1:
+                vlans = vlans_h1
+        elif (not vlans) and vlans_h1:
+            vlans = vlans_h1
+    except Exception:
+        pass
 
     return {"vlans": vlans, "cables": cables}
 

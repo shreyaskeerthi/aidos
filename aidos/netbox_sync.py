@@ -434,13 +434,15 @@ def build_netbox_payload(
     device_u_height = 2
 
     devices: list[dict[str, Any]] = []
+    existing_device_names: set[str] = set()
     for idx in range(sot.intent.node_count):
         # Fill the rack from the bottom up in 2U increments for a visible elevation layout.
         # Start at U40 to avoid top-of-rack placement conflicts seen on some NetBox tenants.
         position = (rack_height_u - device_u_height) - (idx * device_u_height)
+        device_name = f"{deployment}-node-{idx+1}"
         devices.append(
             {
-                "name": f"{deployment}-node-{idx+1}",
+                "name": device_name,
                 "site": site_slug,
                 "rack": rack_name,
                 "status": "active",
@@ -450,6 +452,7 @@ def build_netbox_payload(
                 "custom_fields": {"gpu_model": sot.intent.gpu_model},
             }
         )
+        existing_device_names.add(device_name)
 
     base_vlans = [
         {
@@ -495,6 +498,22 @@ def build_netbox_payload(
             dst_interface = cable.get("destination_interface")
             if not all([src_device, src_interface, dst_device, dst_interface]):
                 continue
+
+            for endpoint_name in [src_device, dst_device]:
+                endpoint = str(endpoint_name).strip()
+                if not endpoint or endpoint in existing_device_names:
+                    continue
+                devices.append(
+                    {
+                        "name": endpoint,
+                        "site": site_slug,
+                        "rack": rack_name,
+                        "status": "active",
+                        "role": "network-fabric",
+                    }
+                )
+                existing_device_names.add(endpoint)
+
             layout_cables.append(
                 {
                     "source_device": str(src_device),
