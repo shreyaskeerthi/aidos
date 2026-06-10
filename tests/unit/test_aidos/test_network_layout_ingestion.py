@@ -347,3 +347,48 @@ def test_parse_network_layout_workbook_extracts_cables_from_endpoint_strings(
     assert parsed["cables"][0]["source_interface"] == "Eth1/2"
     assert parsed["cables"][0]["destination_device"] == "spine-02"
     assert parsed["cables"][0]["destination_interface"] == "Eth1/50"
+
+
+def test_parse_network_layout_workbook_two_row_header_style_extracts_cables(
+    tmp_path: Path, monkeypatch
+) -> None:
+    workbook_path = tmp_path / "fakedata.xlsx"
+    workbook_path.write_text("placeholder", encoding="utf-8")
+
+    # Mirrors the real workbook style where source/destination columns appear as
+    # *Device Name, Module #, *Port and duplicated destination columns with .1 suffix.
+    frame = pd.DataFrame(
+        [
+            {
+                "Make/Model": "N9K-C9508",
+                "Rack": "R0501-SP-A",
+                "*RU": 5,
+                "*Device Name": "Spine Switch A",
+                "Module #": "m1",
+                "*Port": 9,
+                "<------>": "R0501-SP-A RU5 m1/9 <-> R0503-LF-A RU5 m1/9",
+                "Make/Model.1": "N9K-C9508",
+                "Rack.1": "R0503-LF-A",
+                "*RU.1": 5,
+                "*Device Name.1": "Leaf Switch A",
+                "Module #.1": "m1",
+                "*Port.1": 9,
+                "Cable Type": "QSFP-DD AOC",
+                "Length": "10M",
+            }
+        ]
+    )
+
+    monkeypatch.setattr(
+        pd,
+        "read_excel",
+        lambda *_args, **_kwargs: {"Network Layout ": frame},
+    )
+
+    parsed = parse_network_layout_workbook(str(workbook_path))
+
+    assert len(parsed["cables"]) == 1
+    assert parsed["cables"][0]["source_device"] == "Spine Switch A"
+    assert parsed["cables"][0]["source_interface"] == "m1/9"
+    assert parsed["cables"][0]["destination_device"] == "Leaf Switch A"
+    assert parsed["cables"][0]["destination_interface"] == "m1/9"

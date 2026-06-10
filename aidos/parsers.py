@@ -204,6 +204,29 @@ def _split_endpoint(value: Any) -> tuple[str | None, str | None]:
     return None, None
 
 
+def _extract_link_from_text(value: Any) -> tuple[str | None, str | None, str | None, str | None]:
+    if _is_blank(value):
+        return None, None, None, None
+    text = str(value).strip()
+    if "<->" not in text:
+        return None, None, None, None
+
+    pattern = re.compile(
+        r"(?P<src_dev>\S+)\s+RU\d+\s+(?P<src_if>[A-Za-z0-9_/.-]+)\s*<->\s*"
+        r"(?P<dst_dev>\S+)\s+RU\d+\s+(?P<dst_if>[A-Za-z0-9_/.-]+)",
+        flags=re.IGNORECASE,
+    )
+    match = pattern.search(text)
+    if not match:
+        return None, None, None, None
+    return (
+        match.group("src_dev").strip(),
+        match.group("src_if").strip(),
+        match.group("dst_dev").strip(),
+        match.group("dst_if").strip(),
+    )
+
+
 def _parse_vlan_id(value: Any) -> int | None:
     if _is_blank(value):
         return None
@@ -249,7 +272,15 @@ def _network_layout_from_frame(frame: pd.DataFrame) -> tuple[list[dict[str, Any]
 
         source_device = _first_present(
             row_dict,
-            ["source_device", "from_device", "a_device", "device_a", "device_1"],
+            [
+                "source_device",
+                "from_device",
+                "a_device",
+                "device_a",
+                "device_1",
+                "device_name",
+                "rack",
+            ],
         )
         source_interface = _first_present(
             row_dict,
@@ -260,11 +291,21 @@ def _network_layout_from_frame(frame: pd.DataFrame) -> tuple[list[dict[str, Any]
                 "interface_a",
                 "source_port",
                 "port_a",
+                "port",
             ],
         )
         destination_device = _first_present(
             row_dict,
-            ["destination_device", "dest_device", "to_device", "b_device", "device_b", "device_2"],
+            [
+                "destination_device",
+                "dest_device",
+                "to_device",
+                "b_device",
+                "device_b",
+                "device_2",
+                "device_name_1",
+                "rack_1",
+            ],
         )
         destination_interface = _first_present(
             row_dict,
@@ -276,8 +317,24 @@ def _network_layout_from_frame(frame: pd.DataFrame) -> tuple[list[dict[str, Any]
                 "interface_b",
                 "destination_port",
                 "port_b",
+                "port_1",
             ],
         )
+
+        source_module = _first_present(row_dict, ["module", "module_", "module_number", "module_no"])
+        destination_module = _first_present(
+            row_dict, ["module_1", "module_1_", "module_number_1", "module_no_1"]
+        )
+
+        if _is_blank(source_interface) and not _is_blank(source_module):
+            source_port = _first_present(row_dict, ["port", "port_a", "source_port"])
+            if not _is_blank(source_port):
+                source_interface = f"{str(source_module).strip()}/{str(source_port).strip()}"
+
+        if _is_blank(destination_interface) and not _is_blank(destination_module):
+            destination_port = _first_present(row_dict, ["port_1", "port_b", "destination_port"])
+            if not _is_blank(destination_port):
+                destination_interface = f"{str(destination_module).strip()}/{str(destination_port).strip()}"
 
         # Semantic fallback for non-standard headers (for example, A-side/B-side node/port).
         if _is_blank(source_device):
@@ -331,6 +388,24 @@ def _network_layout_from_frame(frame: pd.DataFrame) -> tuple[list[dict[str, Any]
                 destination_device = parsed_device
             if _is_blank(destination_interface) and parsed_interface is not None:
                 destination_interface = parsed_interface
+
+        if any(
+            _is_blank(value)
+            for value in [source_device, source_interface, destination_device, destination_interface]
+        ):
+            for candidate_value in row_dict.values():
+                src_dev, src_if, dst_dev, dst_if = _extract_link_from_text(candidate_value)
+                if src_dev is None:
+                    continue
+                if _is_blank(source_device):
+                    source_device = src_dev
+                if _is_blank(source_interface):
+                    source_interface = src_if
+                if _is_blank(destination_device):
+                    destination_device = dst_dev
+                if _is_blank(destination_interface):
+                    destination_interface = dst_if
+                break
 
         if not any(
             _is_blank(value)
@@ -409,20 +484,30 @@ def parse_network_layout_workbook(path_str: str) -> dict[str, list[dict[str, Any
             cable_seen.add(key)
             cables.append(cable)
 
-    preferred_tokens = {"network", "layout", "cable", "vlan", "l2", "fabric"}
-    preferred_frames = [
-        frame
-        for sheet_name, frame in workbook.items()
-        if any(token in str(sheet_name).strip().lower() for token in preferred_tokens)
-    ]
+    def _scan_workbook_frames(book: dict[Any, pd.DataFrame]) -> None:
+        preferred_tokens = {"network", "layout", "cable", "vlan", "l2", "fabric"}
+        preferred_frames = [
+            frame
+            for sheet_name, frame in book.items()
+            if any(token in str(sheet_name).strip().lower() for token in preferred_tokens)
+        ]
 
-    for frame in preferred_frames:
-        _accumulate_from_sheet(frame)
-
-    # If sheet names are unconventional, fall back to scanning all sheets.
-    if not vlans and not cables:
-        for frame in workbook.values():
+        for frame in preferred_frames:
             _accumulate_from_sheet(frame)
+
+        if not vlans and not cables:
+            for frame in book.values():
+                _accumulate_from_sheet(frame)
+
+    _scan_workbook_frames(workbook)
+
+    # Many customer workbooks use two-row headers. Retry with header=1 if needed.
+    if not vlans and not cables:
+        try:
+            header1_workbook = pd.read_excel(path, sheet_name=None, header=1)
+            _scan_workbook_frames(header1_workbook)
+        except Exception:
+            pass
 
     return {"vlans": vlans, "cables": cables}
 
