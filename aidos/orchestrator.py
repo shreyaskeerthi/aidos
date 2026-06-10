@@ -382,13 +382,56 @@ def query_artifacts(output_dir: str, question: str) -> ChatAnswer:
     terms = [token.lower() for token in question.split() if token.strip()]
     matches: list[tuple[str, str]] = []
 
+    def _summarize_json_artifact(name: str, text: str) -> str:
+        try:
+            payload = json.loads(text)
+        except Exception:
+            return " ".join(text.split())[:260]
+
+        if name == "canonical_sot.json" and isinstance(payload, dict):
+            project = payload.get("project", {}) if isinstance(payload.get("project"), dict) else {}
+            intent = payload.get("intent", {}) if isinstance(payload.get("intent"), dict) else {}
+            site = payload.get("site", {}) if isinstance(payload.get("site"), dict) else {}
+            return (
+                f"Project {project.get('project_name', 'unknown')} for {project.get('customer_name', 'unknown')} "
+                f"at {project.get('site_name', 'unknown')} with {intent.get('node_count', '?')} {intent.get('gpu_model', 'unknown')} nodes; "
+                f"VLANs: {', '.join(str(v) for v in (site.get('vlan_ids') or intent.get('required_vlans') or [])) or 'none'}."
+            )
+
+        if name == "validation_report.json" and isinstance(payload, dict):
+            return (
+                f"Readiness {payload.get('readiness', 'unknown')}; "
+                f"summary: {payload.get('summary', '').strip()[:180]}"
+            )
+
+        if name == "netbox_sync_payloads.json" and isinstance(payload, dict):
+            sync = payload.get("sync_result", {}) if isinstance(payload.get("sync_result"), dict) else {}
+            netbox = payload.get("payload", {}) if isinstance(payload.get("payload"), dict) else {}
+            return (
+                f"NetBox sync {sync.get('status', 'unknown')} with "
+                f"{len(netbox.get('sites', []))} sites, {len(netbox.get('racks', []))} racks, "
+                f"{len(netbox.get('devices', []))} devices, {len(netbox.get('vlans', []))} VLANs, "
+                f"{len(netbox.get('cables', []))} cables."
+            )
+
+        if name == "agentic_task_graph.json" and isinstance(payload, dict):
+            nodes = payload.get("nodes", []) if isinstance(payload.get("nodes"), list) else []
+            return f"Task graph for {payload.get('deployment', 'unknown')} with {len(nodes)} tasks."
+
+        if name == "evidence_bundle.json" and isinstance(payload, dict):
+            evidence = payload.get("evidence", []) if isinstance(payload.get("evidence"), list) else []
+            return f"Evidence bundle for {payload.get('deployment', 'unknown')} with {len(evidence)} evidence items."
+
+        return " ".join(text.split())[:260]
+
     for artifact in sorted(latest.iterdir()):
         if artifact.is_dir():
             continue
-        text = artifact.read_text(encoding="utf-8").lower()
+        raw_text = artifact.read_text(encoding="utf-8")
+        text = raw_text.lower()
         score = sum(1 for term in terms if term in text)
         if score > 0:
-            snippet = artifact.read_text(encoding="utf-8")[:400]
+            snippet = _summarize_json_artifact(artifact.name, raw_text)
             matches.append((artifact.name, snippet))
 
     if not matches:
@@ -405,4 +448,5 @@ def query_artifacts(output_dir: str, question: str) -> ChatAnswer:
         message=f"Grounded matches from NeMoSys artifacts:\n\n{summary}",
         cited_artifacts=cited,
         proposed_actions=["Inspect full artifact for details", "Generate follow-on runbook updates"],
+        mode="grounded",
     )

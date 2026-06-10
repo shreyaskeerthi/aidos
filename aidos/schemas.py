@@ -252,3 +252,5 @@ class ChatAnswer(BaseModel):
     message: str
     cited_artifacts: list[str] = Field(default_factory=list)
     proposed_actions: list[str] = Field(default_factory=list)
+    mode: str | None = None
+    model_used: str | None = None

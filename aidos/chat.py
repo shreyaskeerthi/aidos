@@ -121,7 +121,13 @@ def _ask_nemotron(output_dir: str, session_id: str, message: str) -> ChatAnswer:
             response.raise_for_status()
             data = response.json()
     except Exception:
-        return grounding
+        return ChatAnswer(
+            message=grounding.message,
+            cited_artifacts=grounding.cited_artifacts,
+            proposed_actions=grounding.proposed_actions,
+            mode="grounded",
+            model_used=None,
+        )
 
     content = ""
     choices = data.get("choices", []) if isinstance(data, dict) else []
@@ -131,12 +137,20 @@ def _ask_nemotron(output_dir: str, session_id: str, message: str) -> ChatAnswer:
             content = str(message_payload.get("content") or "").strip()
 
     if not content:
-        return grounding
+        return ChatAnswer(
+            message=grounding.message,
+            cited_artifacts=grounding.cited_artifacts,
+            proposed_actions=grounding.proposed_actions,
+            mode="grounded",
+            model_used=None,
+        )
 
     return ChatAnswer(
         message=content,
         cited_artifacts=cited,
         proposed_actions=actions,
+        mode="nemotron",
+        model_used=_nemotron_model(),
     )
 
 
@@ -154,6 +168,7 @@ def converse(message: str, output_dir: str, session_id: str = "default") -> Chat
             ),
             cited_artifacts=[],
             proposed_actions=["Upload survey, BOM, or workload files", "Run the project flow", "Ask about missing data"],
+            mode="system",
         )
         _append_turn(output_dir, session_id, "assistant", answer.message)
         return answer
@@ -167,6 +182,7 @@ def converse(message: str, output_dir: str, session_id: str = "default") -> Chat
             ),
             cited_artifacts=[],
             proposed_actions=["Run workflow with bom_path", "Run workflow with workload_path"],
+            mode="system",
         )
         _append_turn(output_dir, session_id, "assistant", answer.message)
         return answer
