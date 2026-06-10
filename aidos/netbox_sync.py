@@ -343,7 +343,8 @@ class NetBoxClient:
             _safe_upsert("sites", "/api/dcim/sites/", "slug", site)
         for rack in payload.racks:
             _safe_upsert("racks", "/api/dcim/racks/", "name", rack)
-        for device in payload.devices:
+        # Update higher-index nodes first so position reassignments do not collide.
+        for device in reversed(payload.devices):
             _safe_upsert("devices", "/api/dcim/devices/", "name", device)
         for vlan in payload.vlans:
             _safe_upsert("vlans", "/api/ipam/vlans/", "name", vlan)
