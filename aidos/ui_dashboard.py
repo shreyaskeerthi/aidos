@@ -528,6 +528,7 @@ def render_operator_app_html() -> str:
                 <div class='row'>
                     <button onclick='fillDemoPaths()'>Use Demo Paths</button>
                     <button onclick='fillWesterbyPaths()'>Use Westerby Paths</button>
+                    <button onclick='clearIntakeState()'>Clear Intake State</button>
                     <div id='flow-error' class='muted' style='align-self:center;'></div>
                 </div>
                 <div class='row'>
@@ -949,6 +950,37 @@ def render_operator_app_html() -> str:
             if (saved.workload_path) document.getElementById('workload-path').value = saved.workload_path;
             if (saved.context_path) document.getElementById('context-path').value = saved.context_path;
             addChat('system', 'Files uploaded and intake paths populated.');
+        }
+
+        async function clearIntakeState() {
+            if (!currentProject) return;
+            const ok = window.confirm('Clear saved intake paths and remove uploaded intake files for this project?');
+            if (!ok) return;
+
+            const payload = await fetchJson(`/v1/projects/${currentProject.id}/intake/clear`, {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({remove_uploaded_files: true}),
+            });
+
+            document.getElementById('survey-path').value = '';
+            document.getElementById('bom-path').value = '';
+            document.getElementById('workload-path').value = '';
+            document.getElementById('context-path').value = '';
+            document.getElementById('flow-error').textContent = '';
+
+            const surveyInput = document.getElementById('file-survey');
+            const bomInput = document.getElementById('file-bom');
+            const workloadInput = document.getElementById('file-workload');
+            const contextInput = document.getElementById('file-context');
+            if (surveyInput) surveyInput.value = '';
+            if (bomInput) bomInput.value = '';
+            if (workloadInput) workloadInput.value = '';
+            if (contextInput) contextInput.value = '';
+
+            const removed = payload?.removed_files || 0;
+            addChat('system', `Intake state cleared. Removed ${removed} uploaded file(s).`);
+            addEvent(`Intake state cleared for project ${currentProject.id}.`);
         }
 
         async function sendChat() {

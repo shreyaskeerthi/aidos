@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import shutil
 from pathlib import Path
 from datetime import datetime, timezone
 
@@ -29,6 +30,20 @@ from aidos.ui_dashboard import (
 
 app = FastAPI(title="AIDOS API", version="0.1.0")
 PROJECTS = ProjectStore("aidos/outputs")
+
+
+def _normalize_output_dir(path_value: str) -> str:
+    """Normalize persisted output paths across Windows/Linux separators."""
+    text = str(path_value or "").strip()
+    if not text:
+        return "aidos/outputs"
+    return str(Path(text.replace("\\", "/")))
+
+
+def _normalize_project_payload(project: dict) -> dict:
+    normalized = dict(project)
+    normalized["output_dir"] = _normalize_output_dir(str(normalized.get("output_dir", "")))
+    return normalized
 
 
 @app.get("/")
@@ -122,6 +137,10 @@ class ProjectChatRequest(BaseModel):
     session_id: str = "ops-default"
 
 
+class IntakeClearRequest(BaseModel):
+    remove_uploaded_files: bool = True
+
+
 @app.get("/health")
 def health() -> dict[str, str]:
     return {"status": "ok", "service": "aidos-api"}
@@ -129,19 +148,17 @@ def health() -> dict[str, str]:
 
 @app.get("/v1/projects")
 def list_projects() -> list[dict]:
-    return PROJECTS.list_projects()
+    return [_normalize_project_payload(project) for project in PROJECTS.list_projects()]
 
 
 @app.post("/v1/projects")
 def create_project(payload: ProjectCreateRequest) -> dict:
-    return PROJECTS.create_project(payload.name, payload.description)
+    return _normalize_project_payload(PROJECTS.create_project(payload.name, payload.description))
 
 
 @app.get("/v1/projects/{project_id}")
 def get_project(project_id: str) -> dict:
-    project = PROJECTS.get_project(project_id)
-    if project is None:
-        raise HTTPException(status_code=404, detail="Project not found")
+    project = _require_project(project_id)
     PROJECTS.select_project(project_id)
     return project
 
@@ -150,7 +167,7 @@ def _require_project(project_id: str) -> dict:
     project = PROJECTS.get_project(project_id)
     if project is None:
         raise HTTPException(status_code=404, detail="Project not found")
-    return project
+    return _normalize_project_payload(project)
 
 
 @app.get("/v1/projects/{project_id}/summary")
@@ -379,6 +396,39 @@ def project_upload_inputs(
         "remapped": remapped,
         "replace_existing": replace_existing,
         "detected_network_layout_path": detected_network_layout_path,
+    }
+
+
+@app.post("/v1/projects/{project_id}/intake/clear")
+def project_clear_inputs(project_id: str, payload: IntakeClearRequest | None = None) -> dict:
+    project = _require_project(project_id)
+    remove_uploaded_files = True if payload is None else bool(payload.remove_uploaded_files)
+
+    state_path = Path(project["output_dir"]) / "state" / "latest_inputs.json"
+    cleared = {
+        "survey_path": None,
+        "bom_path": None,
+        "workload_path": None,
+        "context_path": None,
+        "network_layout_path": None,
+    }
+    JsonStateStore(state_path).write(cleared)
+
+    removed_files = 0
+    intake_dir = Path(project["output_dir"]) / "intake"
+    if remove_uploaded_files and intake_dir.exists() and intake_dir.is_dir():
+        for item in intake_dir.iterdir():
+            if item.is_file():
+                item.unlink(missing_ok=True)
+                removed_files += 1
+            elif item.is_dir():
+                shutil.rmtree(item, ignore_errors=True)
+
+    return {
+        "project_id": project_id,
+        "cleared": cleared,
+        "remove_uploaded_files": remove_uploaded_files,
+        "removed_files": removed_files,
     }
 
 
