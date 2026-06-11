@@ -4,6 +4,7 @@ import json
 from pathlib import Path
 
 import aidos.chat as chat_module
+import pytest
 
 from aidos.chat import converse, get_session
 from aidos.execution import ApprovalStore
@@ -130,3 +131,38 @@ def test_execute_flow_respects_pending_approvals(tmp_path: Path) -> None:
     observed = json.loads(artifacts.observed_state_snapshot_json.read_text(encoding="utf-8"))
     statuses = [entry["status"] for entry in observed["signals"]["executed_tasks"]]
     assert "blocked_pending_approval" in statuses
+
+
+def test_live_netbox_sync_requires_token(tmp_path: Path, monkeypatch) -> None:
+    survey_path = tmp_path / "survey.json"
+    bom_path = tmp_path / "bom.json"
+    survey_path.write_text(
+        json.dumps(
+            {
+                "loading_dock": "yes",
+                "server_lift": "yes",
+                "rack_floor_psf": 180,
+            }
+        ),
+        encoding="utf-8",
+    )
+    bom_path.write_text(
+        json.dumps(
+            {
+                "deployment_name": "aidos-live-sync",
+                "gpu_model": "H100",
+                "node_count": 1,
+            }
+        ),
+        encoding="utf-8",
+    )
+    monkeypatch.delenv("NETBOX_TOKEN", raising=False)
+
+    with pytest.raises(ValueError, match="no token"):
+        run_mvp_workflow(
+            survey_path=str(survey_path),
+            bom_path=str(bom_path),
+            output_dir=str(tmp_path / "outputs"),
+            sync_netbox=True,
+            netbox_dry_run=False,
+        )

@@ -142,7 +142,7 @@ class FlowRequest(BaseModel):
     auto_approve: bool = False
     netbox_base_url: str | None = None
     netbox_token: str | None = None
-    netbox_dry_run: bool | None = None
+    netbox_dry_run: bool = False
 
 
 class QueryRequest(BaseModel):
@@ -180,7 +180,7 @@ class ProjectFlowRequest(BaseModel):
     auto_approve: bool = False
     netbox_base_url: str | None = None
     netbox_token: str | None = None
-    netbox_dry_run: bool | None = None
+    netbox_dry_run: bool = False
 
 
 class ProjectChatRequest(BaseModel):

@@ -239,6 +239,135 @@ def _parse_vlan_id(value: Any) -> int | None:
     return None
 
 
+def _normalize_face(value: Any) -> str:
+    if _is_blank(value):
+        return "front"
+    text = str(value).strip().lower()
+    if text.startswith("rear") or text == "r":
+        return "rear"
+    return "front"
+
+
+def _parse_rack_position(value: Any) -> int | None:
+    parsed = _parse_int(value)
+    if parsed is None:
+        return None
+    if parsed < 1 or parsed > 60:
+        return None
+    return parsed
+
+
+def _clean_rack_device_name(value: Any) -> str | None:
+    if _is_blank(value):
+        return None
+    text = re.sub(r"\s+", " ", str(value).strip())
+    if not text:
+        return None
+
+    lowered = text.lower()
+    skip_tokens = {
+        "blank",
+        "spare",
+        "empty",
+        "cable passthrough",
+        "cable management",
+        "filler",
+        "front view",
+        "rear view",
+        "ru",
+    }
+    if any(token in lowered for token in skip_tokens):
+        return None
+    return text
+
+
+def _rack_name_from_sheet(sheet_name: str) -> str:
+    cleaned = re.sub(r"\s+", " ", sheet_name.strip())
+    return cleaned if cleaned else "rack-elevation"
+
+
+def _rack_elevation_from_frame(frame: pd.DataFrame, sheet_name: str) -> list[dict[str, Any]]:
+    if frame.empty:
+        return []
+
+    entries: list[dict[str, Any]] = []
+    seen: set[tuple[str, str, int]] = set()
+    default_rack = _rack_name_from_sheet(sheet_name)
+
+    # Structured-table style: explicit rack/device/U columns.
+    col_map = {col: _canonical_col_name(str(col)) for col in frame.columns}
+    normalized = frame.rename(columns=col_map)
+    for _, row in normalized.iterrows():
+        row_dict = row.to_dict()
+        name = _clean_rack_device_name(
+            _first_present(
+                row_dict,
+                ["device_name", "device", "hostname", "equipment", "asset", "name"],
+            )
+        )
+        position = _parse_rack_position(
+            _first_present(
+                row_dict,
+                ["ru", "rack_u", "rack_unit", "u", "position", "slot"],
+            )
+        )
+        if name is None or position is None:
+            continue
+
+        rack = _first_present(row_dict, ["rack", "rack_name", "cabinet", "enclosure"])
+        rack_name = str(rack).strip() if not _is_blank(rack) else default_rack
+        face = _normalize_face(_first_present(row_dict, ["face", "side", "view"]))
+        key = (name, rack_name, position)
+        if key in seen:
+            continue
+        seen.add(key)
+        entries.append(
+            {
+                "name": name,
+                "rack": rack_name,
+                "position": position,
+                "face": face,
+            }
+        )
+
+    # Grid style: one column with U numbers and adjacent columns with device labels.
+    grid = frame.fillna("")
+    row_count, col_count = grid.shape
+    for col_idx in range(col_count):
+        numbered_rows: list[tuple[int, int]] = []
+        for row_idx in range(row_count):
+            position = _parse_rack_position(grid.iat[row_idx, col_idx])
+            if position is not None:
+                numbered_rows.append((row_idx, position))
+
+        # Require enough RU markers so random numeric columns are ignored.
+        if len(numbered_rows) < 8:
+            continue
+
+        for neighbor in (col_idx - 1, col_idx + 1):
+            if neighbor < 0 or neighbor >= col_count:
+                continue
+            for row_idx, position in numbered_rows:
+                name = _clean_rack_device_name(grid.iat[row_idx, neighbor])
+                if name is None:
+                    continue
+
+                key = (name, default_rack, position)
+                if key in seen:
+                    continue
+                seen.add(key)
+                entries.append(
+                    {
+                        "name": name,
+                        "rack": default_rack,
+                        "position": position,
+                        "face": "front",
+                    }
+                )
+
+    return entries
+
+
 def _network_layout_from_frame(frame: pd.DataFrame) -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
     if frame.empty:
         return [], []
@@ -326,15 +455,29 @@ def _network_layout_from_frame(frame: pd.DataFrame) -> tuple[list[dict[str, Any]
             row_dict, ["module_1", "module_1_", "module_number_1", "module_no_1"]
         )
 
-        if _is_blank(source_interface) and not _is_blank(source_module):
-            source_port = _first_present(row_dict, ["port", "port_a", "source_port"])
-            if not _is_blank(source_port):
-                source_interface = f"{str(source_module).strip()}/{str(source_port).strip()}"
+        if not _is_blank(source_module):
+            if _is_blank(source_interface):
+                source_port = _first_present(row_dict, ["port", "port_a", "source_port"])
+                if not _is_blank(source_port):
+                    source_interface = f"{str(source_module).strip()}/{str(source_port).strip()}"
+            else:
+                source_interface_text = str(source_interface).strip()
+                if "/" not in source_interface_text:
+                    source_interface = f"{str(source_module).strip()}/{source_interface_text}"
 
-        if _is_blank(destination_interface) and not _is_blank(destination_module):
-            destination_port = _first_present(row_dict, ["port_1", "port_b", "destination_port"])
-            if not _is_blank(destination_port):
-                destination_interface = f"{str(destination_module).strip()}/{str(destination_port).strip()}"
+        if not _is_blank(destination_module):
+            if _is_blank(destination_interface):
+                destination_port = _first_present(row_dict, ["port_1", "port_b", "destination_port"])
+                if not _is_blank(destination_port):
+                    destination_interface = (
+                        f"{str(destination_module).strip()}/{str(destination_port).strip()}"
+                    )
+            else:
+                destination_interface_text = str(destination_interface).strip()
+                if "/" not in destination_interface_text:
+                    destination_interface = (
+                        f"{str(destination_module).strip()}/{destination_interface_text}"
+                    )
 
         # Semantic fallback for non-standard headers (for example, A-side/B-side node/port).
         if _is_blank(source_device):
@@ -437,7 +580,7 @@ def _network_layout_from_frame(frame: pd.DataFrame) -> tuple[list[dict[str, Any]
     return vlan_entries, cable_entries
 
 
-def parse_network_layout_workbook(path_str: str) -> dict[str, list[dict[str, Any]]]:
+def parse_network_layout_workbook(path_str: str) -> dict[str, Any]:
     """Extract VLAN and cable rows from workbook sheets.
 
     The parser is intentionally permissive with sheet names and header aliases so
@@ -501,7 +644,27 @@ def parse_network_layout_workbook(path_str: str) -> dict[str, list[dict[str, Any
 
         return found_vlans, found_cables
 
+    def _scan_rack_elevation_frames(book: dict[Any, pd.DataFrame]) -> list[dict[str, Any]]:
+        rack_entries: list[dict[str, Any]] = []
+        seen: set[tuple[str, str, int]] = set()
+        for sheet_name, frame in book.items():
+            sheet_name_text = str(sheet_name).strip().lower()
+            if "rack" not in sheet_name_text or "elevation" not in sheet_name_text:
+                continue
+            for entry in _rack_elevation_from_frame(frame, str(sheet_name)):
+                key = (
+                    str(entry.get("name", "")).strip(),
+                    str(entry.get("rack", "")).strip(),
+                    int(entry.get("position", 0)),
+                )
+                if key in seen:
+                    continue
+                seen.add(key)
+                rack_entries.append(entry)
+        return rack_entries
+
     vlans, cables = _scan_workbook_frames(workbook)
+    rack_devices = _scan_rack_elevation_frames(workbook)
 
     # Many customer workbooks use two-row headers. Parse header=1 and choose richer cable extraction.
     try:
@@ -520,6 +683,8 @@ def parse_network_layout_workbook(path_str: str) -> dict[str, list[dict[str, Any
         }
 
         # Prefer header=1 parsing when it yields more distinct endpoints.
+        rack_devices_h1 = _scan_rack_elevation_frames(header1_workbook)
+
         if len(endpoints_h1) > len(endpoints_h0):
             cables = cables_h1
             if len(vlans_h1) >= len(vlans):
@@ -530,10 +695,13 @@ def parse_network_layout_workbook(path_str: str) -> dict[str, list[dict[str, Any
                 vlans = vlans_h1
         elif (not vlans) and vlans_h1:
             vlans = vlans_h1
+
+        if len(rack_devices_h1) > len(rack_devices):
+            rack_devices = rack_devices_h1
     except Exception:
         pass
 
-    return {"vlans": vlans, "cables": cables}
+    return {"vlans": vlans, "cables": cables, "rack_devices": rack_devices}
 
 
 def _sheet_to_key_value(frame: pd.DataFrame) -> dict[str, Any]:

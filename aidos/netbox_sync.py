@@ -27,7 +27,7 @@ class NetBoxClient:
         self.token = token
         self.timeout = timeout
         self.verify = verify
-        self.dry_run = dry_run or not bool(token)
+        self.dry_run = bool(dry_run)
 
     @classmethod
     def from_env(cls) -> "NetBoxClient":
@@ -131,6 +131,45 @@ class NetBoxClient:
     def _slugify(value: str) -> str:
         normalized = re.sub(r"[^a-z0-9]+", "-", value.lower()).strip("-")
         return normalized or "aidos"
+
+    @staticmethod
+    def _normalize_cable_type(value: Any) -> str:
+        text = str(value or "").strip().lower()
+        if not text:
+            return "cat6"
+
+        # Common workbook labels -> NetBox cable type choices.
+        mapping_contains = [
+            ("aoc", "aoc"),
+            ("active optical", "aoc"),
+            ("dac active", "dac-active"),
+            ("dac passive", "dac-passive"),
+            ("cat8", "cat8"),
+            ("cat7a", "cat7a"),
+            ("cat7", "cat7"),
+            ("cat6a", "cat6a"),
+            ("cat6", "cat6"),
+            ("cat5e", "cat5e"),
+            ("cat5", "cat5"),
+            ("cat3", "cat3"),
+            ("smf", "smf"),
+            ("single mode", "smf"),
+            ("om5", "om5"),
+            ("om4", "om4"),
+            ("om3", "om3"),
+            ("om2", "om2"),
+            ("om1", "om1"),
+            ("mmf", "mmf"),
+            ("multimode", "mmf"),
+            ("coax", "coaxial"),
+            ("power", "power"),
+        ]
+        for needle, normalized in mapping_contains:
+            if needle in text:
+                return normalized
+
+        # Safe fallback for unknown labels.
+        return "cat6"
 
     def _find_id(self, endpoint: str, lookup_field: str, value: Any) -> int | None:
         data = self._request("GET", endpoint, params={lookup_field: value, "limit": 1})
@@ -352,7 +391,7 @@ class NetBoxClient:
                     ]
 
             prepared["status"] = str(prepared.get("status") or "connected")
-            prepared["type"] = str(prepared.get("type") or "cat6")
+            prepared["type"] = self._normalize_cable_type(prepared.get("type"))
 
             if not prepared.get("label"):
                 prepared["label"] = (
@@ -424,7 +463,7 @@ class NetBoxClient:
 
 def build_netbox_payload(
     sot: CanonicalSoT,
-    network_layout: dict[str, list[dict[str, Any]]] | None = None,
+    network_layout: dict[str, Any] | None = None,
 ) -> NetBoxPayload:
     """Map canonical SoT into NetBox-friendly intent payloads."""
     site_slug = (sot.project.site_name or sot.project.project_name).lower().replace(" ", "-")
@@ -434,25 +473,46 @@ def build_netbox_payload(
     device_u_height = 2
 
     devices: list[dict[str, Any]] = []
+    device_by_name: dict[str, dict[str, Any]] = {}
     existing_device_names: set[str] = set()
     for idx in range(sot.intent.node_count):
         # Fill the rack from the bottom up in 2U increments for a visible elevation layout.
         # Start at U40 to avoid top-of-rack placement conflicts seen on some NetBox tenants.
         position = (rack_height_u - device_u_height) - (idx * device_u_height)
         device_name = f"{deployment}-node-{idx+1}"
-        devices.append(
-            {
-                "name": device_name,
-                "site": site_slug,
-                "rack": rack_name,
-                "status": "active",
-                "role": "gpu-compute",
-                "position": position,
-                "face": "front",
-                "custom_fields": {"gpu_model": sot.intent.gpu_model},
-            }
-        )
+        device_entry = {
+            "name": device_name,
+            "site": site_slug,
+            "rack": rack_name,
+            "status": "active",
+            "role": "gpu-compute",
+            "position": position,
+            "face": "front",
+            "custom_fields": {"gpu_model": sot.intent.gpu_model},
+        }
+        devices.append(device_entry)
+        device_by_name[device_name] = device_entry
         existing_device_names.add(device_name)
+
+    racks: list[dict[str, Any]] = [
+        {
+            "name": rack_name,
+            "site": site_slug,
+            "status": "active",
+            "custom_fields": {"required_slots": sot.expected.required_rack_slots},
+        }
+    ]
+    existing_rack_names: set[str] = {rack_name}
+
+    def _infer_role(name: str) -> str:
+        lowered = name.lower()
+        if any(token in lowered for token in ["spine", "leaf", "switch", "router", "firewall", "tor"]):
+            return "network-fabric"
+        if "pdu" in lowered:
+            return "power-distribution"
+        if any(token in lowered for token in ["node", "server", "gpu"]):
+            return "gpu-compute"
+        return "infrastructure"
 
     base_vlans = [
         {
@@ -503,15 +563,15 @@ def build_netbox_payload(
                 endpoint = str(endpoint_name).strip()
                 if not endpoint or endpoint in existing_device_names:
                     continue
-                devices.append(
-                    {
-                        "name": endpoint,
-                        "site": site_slug,
-                        "rack": rack_name,
-                        "status": "active",
-                        "role": "network-fabric",
-                    }
-                )
+                device_entry = {
+                    "name": endpoint,
+                    "site": site_slug,
+                    "rack": rack_name,
+                    "status": "active",
+                    "role": "network-fabric",
+                }
+                devices.append(device_entry)
+                device_by_name[endpoint] = device_entry
                 existing_device_names.add(endpoint)
 
             layout_cables.append(
@@ -528,6 +588,57 @@ def build_netbox_payload(
                     ),
                 }
             )
+
+        for rack_device in network_layout.get("rack_devices", []):
+            device_name = str(rack_device.get("name") or "").strip()
+            rack_for_device = str(rack_device.get("rack") or rack_name).strip()
+            if not device_name:
+                continue
+            if not rack_for_device:
+                rack_for_device = rack_name
+
+            if rack_for_device not in existing_rack_names:
+                racks.append(
+                    {
+                        "name": rack_for_device,
+                        "site": site_slug,
+                        "status": "active",
+                    }
+                )
+                existing_rack_names.add(rack_for_device)
+
+            parsed_position: int | None = None
+            raw_position = rack_device.get("position")
+            if isinstance(raw_position, int):
+                parsed_position = raw_position
+            elif isinstance(raw_position, str) and raw_position.strip().isdigit():
+                parsed_position = int(raw_position.strip())
+
+            face_raw = str(rack_device.get("face") or "front").strip().lower()
+            face_value = "rear" if face_raw.startswith("rear") else "front"
+
+            existing = device_by_name.get(device_name)
+            if existing is None:
+                role_value = str(rack_device.get("role") or _infer_role(device_name)).strip()
+                new_entry = {
+                    "name": device_name,
+                    "site": site_slug,
+                    "rack": rack_for_device,
+                    "status": "active",
+                    "role": role_value,
+                }
+                if parsed_position is not None:
+                    new_entry["position"] = parsed_position
+                new_entry["face"] = face_value
+                devices.append(new_entry)
+                device_by_name[device_name] = new_entry
+                existing_device_names.add(device_name)
+                continue
+
+            existing["rack"] = rack_for_device
+            if parsed_position is not None:
+                existing["position"] = parsed_position
+            existing["face"] = face_value
 
     vlan_by_site_vid: dict[tuple[str, str], dict[str, Any]] = {}
     for vlan in [*base_vlans, *layout_vlans]:
@@ -560,12 +671,7 @@ def build_netbox_payload(
             }
         ],
         racks=[
-            {
-                "name": rack_name,
-                "site": site_slug,
-                "status": "active",
-                "custom_fields": {"required_slots": sot.expected.required_rack_slots},
-            }
+            *racks
         ],
         devices=devices,
         vlans=list(vlan_by_site_vid.values()),

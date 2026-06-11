@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import os
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from pathlib import Path
@@ -157,14 +158,24 @@ def run_mvp_workflow(
 
     sync_result: dict[str, Any] | None = None
     if sync_netbox:
-        if netbox_base_url is None and netbox_token is None and netbox_dry_run is None:
-            netbox_client = NetBoxClient.from_env()
+        base_url = netbox_base_url or os.getenv("NETBOX_URL", "http://netbox.local")
+        token = netbox_token if netbox_token is not None else os.getenv("NETBOX_TOKEN")
+        if netbox_dry_run is None:
+            dry_run = os.getenv("NETBOX_DRY_RUN", "false").lower() in {"1", "true", "yes", "on"}
         else:
-            netbox_client = NetBoxClient(
-                base_url=netbox_base_url or "http://netbox.local",
-                token=netbox_token,
-                dry_run=bool(netbox_dry_run),
+            dry_run = bool(netbox_dry_run)
+
+        if not dry_run and not token:
+            raise ValueError(
+                "NetBox live sync requested but no token was provided. "
+                "Set netbox_token/NETBOX_TOKEN or enable netbox_dry_run."
             )
+
+        netbox_client = NetBoxClient(
+            base_url=base_url,
+            token=token,
+            dry_run=dry_run,
+        )
         sync_result = netbox_client.upsert_payload(netbox_payload)
         log_event(LOGGER, "netbox.sync", result=sync_result)
 

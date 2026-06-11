@@ -502,3 +502,80 @@ def test_ingest_inputs_infers_project_context_from_workbook(tmp_path: Path, monk
 
     assert bundle.project.customer_name == "Meridian Networks"
     assert bundle.project.site_name == "Phoenix DC"
+
+
+def test_parse_network_layout_workbook_extracts_rack_elevation_sheet(
+    tmp_path: Path, monkeypatch
+) -> None:
+    workbook_path = tmp_path / "rack_elevation.xlsx"
+    workbook_path.write_text("placeholder", encoding="utf-8")
+
+    monkeypatch.setattr(
+        pd,
+        "read_excel",
+        lambda *_args, **_kwargs: {
+            "Rack Elevation": pd.DataFrame(
+                [
+                    {
+                        "Rack": "R0501-SP-A",
+                        "Device Name": "Spine Switch A",
+                        "RU": 11,
+                        "Face": "front",
+                    },
+                    {
+                        "Rack": "R0501-SP-A",
+                        "Device Name": "Leaf Switch A",
+                        "RU": 9,
+                        "Face": "rear",
+                    },
+                ]
+            )
+        },
+    )
+
+    parsed = parse_network_layout_workbook(str(workbook_path))
+
+    assert len(parsed["rack_devices"]) == 2
+    assert parsed["rack_devices"][0]["name"] == "Spine Switch A"
+    assert parsed["rack_devices"][0]["rack"] == "R0501-SP-A"
+    assert parsed["rack_devices"][0]["position"] == 11
+
+
+def test_build_netbox_payload_applies_rack_elevation_positions() -> None:
+    from aidos.schemas import CanonicalSoT, DeploymentIntent, ExpectedTruth, ProjectContext, SiteSurvey
+
+    site = SiteSurvey()
+    intent = DeploymentIntent(deployment_name="demo", gpu_model="H100", node_count=2)
+    expected = ExpectedTruth.from_inputs(site, intent)
+    sot = CanonicalSoT(
+        project=ProjectContext(project_name="demo", site_name="demo-site"),
+        intent=intent,
+        site=site,
+        expected=expected,
+    )
+
+    payload = build_netbox_payload(
+        sot,
+        network_layout={
+            "vlans": [],
+            "cables": [],
+            "rack_devices": [
+                {
+                    "name": "Spine Switch A",
+                    "rack": "Rack 501",
+                    "position": 11,
+                    "face": "rear",
+                }
+            ],
+        },
+    )
+
+    rack_names = {item["name"] for item in payload.racks}
+    assert "demo-rack-a" in rack_names
+    assert "Rack 501" in rack_names
+
+    rack_devices = {item["name"]: item for item in payload.devices}
+    assert "Spine Switch A" in rack_devices
+    assert rack_devices["Spine Switch A"]["rack"] == "Rack 501"
+    assert rack_devices["Spine Switch A"]["position"] == 11
+    assert rack_devices["Spine Switch A"]["face"] == "rear"
