@@ -22,7 +22,7 @@ _ARTIFACT_DESCRIPTIONS: dict[str, tuple[int, str]] = {
     ),
     "netbox_sync_payloads.json": (
         4,
-        "Planned NetBox objects and optional sync reconciliation results.",
+        "Planned infrastructure objects and optional reconciliation results.",
     ),
     "runbook.yaml": (
         5,
@@ -114,6 +114,8 @@ def list_latest_artifacts(output_dir: str) -> list[dict[str, Any]]:
         if path.is_dir():
             continue
         rel = path.relative_to(latest).as_posix()
+        if "netbox" in rel.lower():
+            continue
         order, blurb = _ARTIFACT_DESCRIPTIONS.get(
             rel,
             _ARTIFACT_DESCRIPTIONS.get(path.name, (999, "Generated lifecycle artifact.")),
@@ -532,16 +534,8 @@ def render_operator_app_html() -> str:
                     <div id='flow-error' class='muted' style='align-self:center;'></div>
                 </div>
                 <div class='row'>
-                    <label><input type='checkbox' id='sync-netbox'> Sync NetBox</label>
                     <label><input type='checkbox' id='execute-flow'> Execute</label>
                     <label><input type='checkbox' id='auto-approve'> Auto-approve</label>
-                </div>
-                <div class='row'>
-                    <input id='netbox-base-url' placeholder='NetBox base URL (optional, e.g. https://tenant.cloud.netboxapp.com)'>
-                    <input id='netbox-token' type='password' placeholder='NetBox token (optional, uses server env if blank)'>
-                </div>
-                <div class='row'>
-                    <label><input type='checkbox' id='netbox-dry-run'> NetBox dry run</label>
                 </div>
                 <button class='btn-primary' onclick='runFlow()'>Run Project Flow</button>
             </div>
@@ -566,7 +560,6 @@ def render_operator_app_html() -> str:
                     <div class='stage' data-stage='intake'>Intake</div>
                     <div class='stage' data-stage='formalize'>Formalize</div>
                     <div class='stage' data-stage='validate'>Validate</div>
-                    <div class='stage' data-stage='netbox'>NetBox</div>
                     <div class='stage' data-stage='plan'>Plan</div>
                     <div class='stage' data-stage='execute'>Execute</div>
                     <div class='stage' data-stage='verify'>Verify</div>
@@ -596,7 +589,7 @@ def render_operator_app_html() -> str:
         let runInProgress = false;
         const WINDOWS_PYATS_UNSUPPORTED = navigator.userAgent.toLowerCase().includes('windows');
 
-        const STAGES = ['intake', 'formalize', 'validate', 'netbox', 'plan', 'execute', 'verify'];
+        const STAGES = ['intake', 'formalize', 'validate', 'plan', 'execute', 'verify'];
 
         function nowTime() {
             return new Date().toLocaleTimeString();
@@ -790,10 +783,7 @@ def render_operator_app_html() -> str:
                 workload_path: document.getElementById('workload-path').value.trim() || null,
                 pyats_testbed_path: pyatsInput.value.trim() || null,
                 context_path: document.getElementById('context-path').value.trim() || null,
-                sync_netbox: document.getElementById('sync-netbox').checked,
-                netbox_base_url: document.getElementById('netbox-base-url').value.trim() || null,
-                netbox_token: document.getElementById('netbox-token').value.trim() || null,
-                netbox_dry_run: document.getElementById('netbox-dry-run').checked,
+                sync_netbox: false,
                 execute: document.getElementById('execute-flow').checked,
                 auto_approve: document.getElementById('auto-approve').checked,
             };
@@ -830,11 +820,6 @@ def render_operator_app_html() -> str:
 
                 await new Promise(resolve => setTimeout(resolve, 120));
                 setStage('validate', 'done');
-                setStage('netbox', 'active');
-                addEvent(payload.sync_netbox ? 'Preparing and applying NetBox sync payloads.' : 'NetBox sync skipped.');
-
-                await new Promise(resolve => setTimeout(resolve, 120));
-                setStage('netbox', 'done');
                 setStage('plan', 'active');
                 addEvent('Generating runbook, task graph, and Ansible artifacts.');
 
@@ -851,16 +836,14 @@ def render_operator_app_html() -> str:
 
                 const debug = flowResult?.run_debug || {};
                 const resolved = debug?.resolved_inputs || {};
-                const netbox = debug?.netbox || {};
-                const counts = netbox?.payload_counts || {};
-                const syncStatus = netbox?.sync_status || 'n/a';
+                const objectCounts = debug?.netbox?.payload_counts || {};
                 const readiness = debug?.readiness || 'unknown';
 
                 addEvent(
                     `Resolved inputs: survey=${resolved.survey_path || '-'} | bom=${resolved.bom_path || '-'} | workload=${resolved.workload_path || '-'} | context=${resolved.context_path || '-'} | network=${resolved.network_layout_path || '-'}`
                 );
                 addEvent(
-                    `NetBox payload counts: sites=${counts.sites || 0}, racks=${counts.racks || 0}, devices=${counts.devices || 0}, vlans=${counts.vlans || 0}, prefixes=${counts.prefixes || 0}, cables=${counts.cables || 0} | sync=${syncStatus} | readiness=${readiness}`
+                    `Object payload counts: sites=${objectCounts.sites || 0}, racks=${objectCounts.racks || 0}, devices=${objectCounts.devices || 0}, vlans=${objectCounts.vlans || 0}, prefixes=${objectCounts.prefixes || 0}, cables=${objectCounts.cables || 0} | readiness=${readiness}`
                 );
 
                 setStage('execute', 'done');
@@ -912,9 +895,8 @@ def render_operator_app_html() -> str:
             document.getElementById('workload-path').value = '';
             document.getElementById('bom-path').value = 'aidos/examples/bom_westerby_intl.yaml';
             document.getElementById('context-path').value = 'aidos/examples/context_westerby_intl.json';
-            document.getElementById('sync-netbox').checked = true;
             document.getElementById('execute-flow').checked = true;
-            addChat('system', 'Westerby International preset loaded (survey/bom/context + NetBox sync enabled).');
+            addChat('system', 'Westerby International preset loaded (survey/bom/context and execution enabled).');
         }
 
         function closeWelcome() {
