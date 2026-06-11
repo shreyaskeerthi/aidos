@@ -7,6 +7,8 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
+from pydantic import ValidationError
+
 from aidos.parsers import (
     parse_deployment_intent_workbook,
     parse_network_layout_workbook,
@@ -203,14 +205,30 @@ def ingest_inputs(
 
     workload: WorkloadProfile | None = None
     workload_raw: dict[str, Any] | None = None
+    invalid_bom_raw: dict[str, Any] | None = None
     if workload_path:
         workload_raw = read_key_value_file(workload_path)
         workload = WorkloadProfile.model_validate(workload_raw)
 
     if bom_path:
         bom_raw = _load_bom_payload(bom_path)
-        intent = DeploymentIntent.model_validate(bom_raw)
-        bom_mode = "provided_bom"
+        try:
+            intent = DeploymentIntent.model_validate(bom_raw)
+            bom_mode = "provided_bom"
+        except ValidationError:
+            invalid_bom_raw = bom_raw
+            workbook_intent = _infer_intent_from_workbooks(
+                survey_path,
+                context_path,
+                network_layout_path,
+            )
+            if workbook_intent is not None:
+                intent = workbook_intent
+                bom_mode = "provided_bom_invalid_fallback_inferred_from_workbook_bom"
+            else:
+                intent = infer_intent_from_inputs(survey_raw, context_raw, network_layout)
+                bom_mode = "provided_bom_invalid_fallback_inferred_from_inputs"
+            bom_raw = intent.model_dump(mode="python")
     elif workload is not None:
         bom_raw = build_bom_from_workload(workload).model_dump(mode="python")
         intent = DeploymentIntent.model_validate(bom_raw)
@@ -237,6 +255,8 @@ def ingest_inputs(
         provenance.append(_ev("intake.workload", workload_raw, "read_key_value_file"))
     if network_layout is not None:
         provenance.append(_ev("intake.network_layout", network_layout, "parse_network_layout_workbook"))
+    if invalid_bom_raw is not None:
+        provenance.append(_ev("intake.bom_invalid", invalid_bom_raw, "deployment_intent_validation_failed"))
 
     normalized_inputs = {
         "survey": survey_raw,

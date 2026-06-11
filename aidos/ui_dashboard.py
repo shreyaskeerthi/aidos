@@ -481,7 +481,7 @@ def render_operator_app_html() -> str:
             <button class='welcome-close' type='button' aria-label='Close welcome dialog' onclick='closeWelcome()'>x</button>
             <h3 id='welcome-title'>Welcome to AIDOS</h3>
             <p>AIDOS is the deployment operating system. NeMoSys is the agentic operator assistant inside it, and it uses the NemoClaw task graph to reason about workflow stages, actions, and evidence.</p>
-            <p>Use the project panel on the left, then upload survey/BOM/workload files or point to paths directly. Run the flow to see live stages, artifacts, NeMoSys reasoning traces, and execution evidence.</p>
+            <p>Use the project panel on the left, then upload survey/intake/workload files or point to paths directly. Run the flow to see live stages, artifacts, NeMoSys reasoning traces, and execution evidence.</p>
             <p id='welcome-pyats-note'>If you want pyATS health checks, run AIDOS on Linux or WSL. Windows environments can still use the CLI fallback path.</p>
             <p>Thanks for using it.</p>
         </div>
@@ -520,7 +520,7 @@ def render_operator_app_html() -> str:
                     <input id='workload-path' placeholder='Workload path (optional)'>
                 </div>
                 <div class='row'>
-                    <input id='bom-path' placeholder='BOM path (optional if workload provided)'>
+                    <input id='bom-path' placeholder='Intake plan path (optional if workload provided)'>
                     <input id='context-path' placeholder='Context path (optional)'>
                 </div>
                 <div class='row'>
@@ -805,7 +805,7 @@ def render_operator_app_html() -> str:
             resetStages();
             addEvent('Flow request accepted.');
             setStage('intake', 'active');
-            addEvent('Reading intake inputs (survey / workload / bom / context).');
+            addEvent('Reading intake inputs (survey / workload / intake plan / context).');
 
             try {
                 await new Promise(resolve => setTimeout(resolve, 150));
@@ -840,7 +840,7 @@ def render_operator_app_html() -> str:
                 const readiness = debug?.readiness || 'unknown';
 
                 addEvent(
-                    `Resolved inputs: survey=${resolved.survey_path || '-'} | bom=${resolved.bom_path || '-'} | workload=${resolved.workload_path || '-'} | context=${resolved.context_path || '-'} | network=${resolved.network_layout_path || '-'}`
+                    `Resolved inputs: survey=${resolved.survey_path || '-'} | intake_plan=${resolved.bom_path || '-'} | workload=${resolved.workload_path || '-'} | context=${resolved.context_path || '-'} | network=${resolved.network_layout_path || '-'}`
                 );
                 addEvent(
                     `Object payload counts: sites=${objectCounts.sites || 0}, racks=${objectCounts.racks || 0}, devices=${objectCounts.devices || 0}, vlans=${objectCounts.vlans || 0}, prefixes=${objectCounts.prefixes || 0}, cables=${objectCounts.cables || 0} | readiness=${readiness}`
@@ -892,11 +892,11 @@ def render_operator_app_html() -> str:
 
         function fillWesterbyPaths() {
             document.getElementById('survey-path').value = 'aidos/examples/site_survey_westerby_intl.json';
-            document.getElementById('workload-path').value = '';
-            document.getElementById('bom-path').value = 'aidos/examples/bom_westerby_intl.yaml';
+            document.getElementById('workload-path').value = 'aidos/examples/workload_profile_example.yaml';
+            document.getElementById('bom-path').value = '';
             document.getElementById('context-path').value = 'aidos/examples/context_westerby_intl.json';
             document.getElementById('execute-flow').checked = true;
-            addChat('system', 'Westerby International preset loaded (survey/bom/context and execution enabled).');
+            addChat('system', 'Westerby International preset loaded (survey/intake plan/context and execution enabled).');
         }
 
         function closeWelcome() {
