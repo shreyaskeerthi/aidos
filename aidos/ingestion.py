@@ -10,6 +10,7 @@ from typing import Any
 from aidos.parsers import (
     parse_deployment_intent_workbook,
     parse_network_layout_workbook,
+    parse_workbook_metadata,
     read_key_value_file,
 )
 from aidos.schemas import (
@@ -103,12 +104,14 @@ def infer_intent_from_inputs(
     gpu_model = str(
         survey_raw.get("gpu_model")
         or context_raw.get("gpu_model")
+        or context_raw.get("gpu_model_hint")
         or context_raw.get("gpu_model_preference")
-        or "H100"
+        or "UNSPECIFIED"
     ).strip()
     node_count = _coerce_int(
         survey_raw.get("node_count")
         or context_raw.get("node_count")
+        or context_raw.get("node_count_hint")
         or context_raw.get("desired_node_count"),
         default=4,
     )
@@ -129,7 +132,7 @@ def infer_intent_from_inputs(
 
     return DeploymentIntent(
         deployment_name=deployment_name or "aidos-adaptive-deployment",
-        gpu_model=gpu_model or "H100",
+        gpu_model=gpu_model or "UNSPECIFIED",
         node_count=node_count,
         target_platform=target_platform or None,
         required_vlans=required_vlans,
@@ -176,6 +179,22 @@ def ingest_inputs(
     survey = SiteSurvey.model_validate(survey_raw)
 
     context_raw = read_key_value_file(context_path) if context_path else {}
+    if not context_raw:
+        survey_suffix = Path(survey_path).suffix.lower()
+        if survey_suffix in {".xlsx", ".xlsm", ".xls"}:
+            try:
+                workbook_meta = parse_workbook_metadata(survey_path)
+            except Exception:
+                workbook_meta = {}
+            context_raw = {
+                "customer_name": workbook_meta.get("customer_name"),
+                "project_name": workbook_meta.get("project_name"),
+                "site_name": workbook_meta.get("site_name"),
+                "node_count_hint": workbook_meta.get("node_count_hint"),
+                "gpu_model_hint": workbook_meta.get("gpu_model_hint"),
+                "bom_present": workbook_meta.get("bom_present"),
+            }
+            context_raw = {k: v for k, v in context_raw.items() if v is not None}
     network_layout = (
         parse_network_layout_workbook(network_layout_path)
         if network_layout_path

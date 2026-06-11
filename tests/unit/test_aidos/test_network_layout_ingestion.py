@@ -7,7 +7,11 @@ import pandas as pd
 
 from aidos.ingestion import ingest_inputs
 from aidos.netbox_sync import build_netbox_payload
-from aidos.parsers import parse_deployment_intent_workbook, parse_network_layout_workbook
+from aidos.parsers import (
+    parse_deployment_intent_workbook,
+    parse_network_layout_workbook,
+    parse_workbook_metadata,
+)
 from aidos.truth import build_canonical_sot
 
 
@@ -428,3 +432,73 @@ def test_build_netbox_payload_adds_devices_from_cable_endpoints() -> None:
     assert "Spine Switch A" in device_names
     assert "Leaf Switch A" in device_names
     assert len(payload.devices) >= 6
+
+
+def test_parse_workbook_metadata_extracts_context_hints(tmp_path: Path, monkeypatch) -> None:
+    workbook_path = tmp_path / "fakedata.xlsx"
+    workbook_path.write_text("placeholder", encoding="utf-8")
+
+    change_log = pd.DataFrame(
+        [
+            ["Meridian Networks - Phoenix DC Build Phase 1 Integration Details Document"],
+        ]
+    )
+
+    monkeypatch.setattr(
+        pd,
+        "read_excel",
+        lambda *_args, **_kwargs: {
+            "Change Logs": change_log,
+            "BOM": pd.DataFrame([["Item #", "Part #"]]),
+            "Rack-SP-A (501)": pd.DataFrame([["x"]]),
+            "Rack-SP-B (502)": pd.DataFrame([["x"]]),
+            "Rack-LF-A (503)": pd.DataFrame([["x"]]),
+            "Rack-LF-B (504)": pd.DataFrame([["x"]]),
+        },
+    )
+
+    metadata = parse_workbook_metadata(str(workbook_path))
+
+    assert metadata.get("customer_name") == "Meridian Networks"
+    assert "Phoenix DC" in str(metadata.get("project_name"))
+    assert metadata.get("site_name") == "Phoenix DC"
+    assert metadata.get("bom_present") is True
+    assert metadata.get("node_count_hint") == 4
+
+
+def test_ingest_inputs_infers_project_context_from_workbook(tmp_path: Path, monkeypatch) -> None:
+    survey_path = tmp_path / "fakedata.xlsx"
+    survey_path.write_text("placeholder", encoding="utf-8")
+
+    monkeypatch.setattr(
+        pd,
+        "read_excel",
+        lambda *_args, **_kwargs: {
+            "Change Logs": pd.DataFrame(
+                [["Meridian Networks - Phoenix DC Build Phase 1 Integration Details Document"]]
+            ),
+            "BOM": pd.DataFrame(
+                [
+                    ["Field", "Value"],
+                    ["deployment_name", "meridian-phoenix-build"],
+                    ["gpu_model", "UNSPECIFIED"],
+                    ["node_count", 4],
+                ]
+            ),
+            "Network Layout ": pd.DataFrame(
+                [
+                    {
+                        "Source Device": "Spine Switch A",
+                        "Source Interface": "m1/1",
+                        "Destination Device": "Leaf Switch A",
+                        "Destination Interface": "m1/1",
+                    }
+                ]
+            ),
+        },
+    )
+
+    bundle = ingest_inputs(str(survey_path), network_layout_path=str(survey_path))
+
+    assert bundle.project.customer_name == "Meridian Networks"
+    assert bundle.project.site_name == "Phoenix DC"

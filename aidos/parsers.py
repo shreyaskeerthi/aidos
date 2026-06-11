@@ -624,10 +624,95 @@ def parse_deployment_intent_workbook(path_str: str) -> dict[str, Any]:
         if parsed is not None:
             return parsed
 
+    metadata = parse_workbook_metadata(path_str)
+    if bool(metadata.get("bom_present")):
+        deployment_name = str(metadata.get("project_name") or "aidos-adaptive-deployment")
+        gpu_model = str(metadata.get("gpu_model_hint") or "UNSPECIFIED")
+        node_count_hint = metadata.get("node_count_hint")
+        try:
+            node_count = max(int(node_count_hint), 1) if node_count_hint is not None else 1
+        except Exception:
+            node_count = 1
+        model = DeploymentIntent(
+            deployment_name=deployment_name,
+            gpu_model=gpu_model,
+            node_count=node_count,
+            target_platform=None,
+            required_vlans=[],
+        )
+        return model.model_dump(mode="python")
+
     raise ValueError(
         "No BOM sheet with deployment intent fields found. "
         "Expected a BOM/Bill of Materials sheet containing gpu_model and related fields."
     )
+
+
+def parse_workbook_metadata(path_str: str) -> dict[str, Any]:
+    """Extract project/context hints from mixed intake workbooks."""
+
+    path = Path(path_str)
+    if not path.exists():
+        raise FileNotFoundError(f"Input file not found: {path}")
+    if path.suffix.lower() not in {".xlsx", ".xlsm", ".xls"}:
+        raise ValueError("Workbook metadata parser requires an Excel file")
+
+    workbook = pd.read_excel(path, sheet_name=None, header=None)
+    sheet_names = [str(name).strip() for name in workbook.keys()]
+    lower_names = [name.lower() for name in sheet_names]
+
+    bom_present = any("bom" in name or "bill" in name for name in lower_names)
+    rack_count = sum(
+        1
+        for name in lower_names
+        if (name.startswith("rack-") or name.startswith("rack "))
+        and "elevation" not in name
+        and "layout" not in name
+    )
+
+    text_blob_parts: list[str] = []
+    for frame in workbook.values():
+        if frame.empty:
+            continue
+        sample = frame.head(25).fillna("")
+        for row in sample.itertuples(index=False):
+            joined = " ".join(str(cell).strip() for cell in row if str(cell).strip())
+            if joined:
+                text_blob_parts.append(joined)
+    text_blob = "\n".join(text_blob_parts)
+    text_blob_l = text_blob.lower()
+
+    customer_name: str | None = None
+    project_name: str | None = None
+    site_name: str | None = None
+
+    # Common title form: "Meridian Networks - Phoenix DC Build Phase 1 ..."
+    title_match = re.search(r"([A-Za-z0-9& ._-]+)\s+-\s+([A-Za-z0-9& ._-]+)", text_blob)
+    if title_match:
+        customer_name = title_match.group(1).strip()
+        project_name = title_match.group(2).strip()
+
+    site_match = re.search(r"\b([A-Za-z]+\s+DC)\b", text_blob, flags=re.IGNORECASE)
+    if site_match:
+        site_name = site_match.group(1).strip()
+
+    gpu_model_hint: str | None = None
+    for token in ["GB200", "B200", "H200", "H100"]:
+        if re.search(rf"\b{token}\b", text_blob_l, flags=re.IGNORECASE):
+            gpu_model_hint = token
+            break
+
+    metadata: dict[str, Any] = {
+        "sheet_names": sheet_names,
+        "bom_present": bom_present,
+        "rack_count": rack_count,
+        "node_count_hint": rack_count if rack_count > 0 else None,
+        "customer_name": customer_name,
+        "project_name": project_name,
+        "site_name": site_name,
+        "gpu_model_hint": gpu_model_hint,
+    }
+    return {k: v for k, v in metadata.items() if v is not None}
 
 
 def _read_json(path: Path) -> dict[str, Any]:

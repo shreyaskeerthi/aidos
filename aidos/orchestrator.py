@@ -392,10 +392,13 @@ def query_artifacts(output_dir: str, question: str) -> ChatAnswer:
             project = payload.get("project", {}) if isinstance(payload.get("project"), dict) else {}
             intent = payload.get("intent", {}) if isinstance(payload.get("intent"), dict) else {}
             site = payload.get("site", {}) if isinstance(payload.get("site"), dict) else {}
+            bom_present = project.get("bom_present")
+            site_name = project.get("site_name", "unknown")
             return (
                 f"Project {project.get('project_name', 'unknown')} for {project.get('customer_name', 'unknown')} "
-                f"at {project.get('site_name', 'unknown')} with {intent.get('node_count', '?')} {intent.get('gpu_model', 'unknown')} nodes; "
-                f"VLANs: {', '.join(str(v) for v in (site.get('vlan_ids') or intent.get('required_vlans') or [])) or 'none'}."
+                f"at {site_name} with {intent.get('node_count', '?')} {intent.get('gpu_model', 'unknown')} nodes; "
+                f"VLANs: {', '.join(str(v) for v in (site.get('vlan_ids') or intent.get('required_vlans') or [])) or 'none'}; "
+                f"BOM present hint: {bom_present if bom_present is not None else 'unknown'}."
             )
 
         if name == "validation_report.json" and isinstance(payload, dict):
